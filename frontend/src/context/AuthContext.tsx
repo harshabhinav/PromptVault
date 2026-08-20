@@ -21,8 +21,8 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
-  sendSignUpOTP: (email: string) => Promise<{ error: Error | null }>;
-  verifySignUpOTPAndRegister: (email: string, otp: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
+  signUp: (fullName: string, email: string, password: string) => Promise<{ error: Error | null; requires_verification?: boolean; message?: string }>;
+  resendVerification: (email: string) => Promise<{ error: Error | null; message?: string }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<{ error: Error | null }>;
 }
@@ -143,63 +143,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const sendSignUpOTP = async (email: string) => {
-    if (!email) return { error: new Error("Email is required.") };
-
-    try {
-      // First, quickly check with backend if email is already taken
-      try {
-        await api.get(`/auth/check-email?email=${encodeURIComponent(email)}`);
-      } catch (err: any) {
-        if (err.response?.status === 409) {
-          return { error: new Error("This email is already registered. Please sign in or use a different email.") };
-        }
-      }
-
-      const response = await api.post("/auth/send-otp", { email });
-      return { error: null };
-    } catch (err: any) {
-      return { error: new Error(err.response?.data?.detail || err.message || "Failed to send OTP.") };
-    }
-  };
-
-  const verifySignUpOTPAndRegister = async (email: string, otp: string, password: string, fullName: string) => {
-    if (!email || !otp || !password || !fullName) {
+  const signUp = async (fullName: string, email: string, password: string) => {
+    if (!fullName || !email || !password) {
       return { error: new Error("All fields are required.") };
     }
 
     try {
-      const response = await api.post("/auth/verify-otp", { 
-        email, 
-        otp_code: otp,
-        password,
-        name: fullName
+      const response = await api.post("/auth/signup", {
+        name: fullName,
+        email,
+        password
       });
-      const data = response.data;
-
-      if (data.access_token && data.user) {
-        setAuthSession(data.access_token, data.user);
-        return { error: null };
-      }
-      return { error: new Error("Registration failed.") };
+      return { 
+        error: null, 
+        requires_verification: true,
+        message: response.data?.message || "Account created! Please check your email for the verification link."
+      };
     } catch (err: any) {
-      const detail = err.response?.data?.detail || err.message || "";
-      let message = detail;
-      if (err.response?.status === 409 || detail.toLowerCase().includes("already registered")) {
-        message = "This email is already registered. Please sign in or use a different email.";
-      } else if (!message) {
-        message = "Incorrect verification code or registration failed.";
-      }
-      return { error: new Error(message) };
+      const detail = err.response?.data?.detail || err.message || "Registration failed. Please try again.";
+      return { error: new Error(detail) };
+    }
+  };
+
+  const resendVerification = async (email: string) => {
+    if (!email) {
+      return { error: new Error("Email address is required.") };
+    }
+
+    try {
+      const response = await api.post("/auth/resend-verification", { email });
+      return {
+        error: null,
+        message: response.data?.message || "Verification link sent! Please check your inbox."
+      };
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || err.message || "Unable to resend verification email.";
+      return { error: new Error(detail) };
     }
   };
 
   const signInWithGoogle = async () => {
     try {
-      // Mock Google sign-in fallback for local testing
       const mockEmail = "user@promptvault.io";
       const mockName = "Google User";
-      const response = await api.post("/auth/verify-otp", { email: mockEmail, otp: "123456" });
+      const response = await api.post("/auth/google", { id_token: "mock_google_token" });
       if (response.data?.access_token) {
         setAuthSession(response.data.access_token, response.data.user || { id: "google_1", email: mockEmail, name: mockName });
         return { error: null };
@@ -229,8 +216,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         isAuthenticated: Boolean(user && token),
         signInWithEmail,
-        sendSignUpOTP,
-        verifySignUpOTPAndRegister,
+        signUp,
+        resendVerification,
         signInWithGoogle,
         signOut,
       }}
@@ -247,3 +234,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+

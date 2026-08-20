@@ -34,8 +34,20 @@ def run_tests():
     status_code, body = make_request("/signup", payload={"email": test_email, "password": password, "name": "Security Test User"})
     print(f"1. Register New Email ({test_email}): Status {status_code}")
     assert status_code == 201, f"Expected 201, got {status_code}: {body}"
-    assert "access_token" in body, "Expected access_token in response"
-    print("   [PASS] PASS: Registered successfully with 201 Created.")
+    assert "access_token" not in body, "access_token should not be in signup response"
+    assert body.get("requires_verification") is True, "Expected requires_verification=True"
+    print("   [PASS] PASS: Registered successfully with 201 Created (email verification required).")
+
+    # Verify email directly in DB for login test
+    from app.database.connection import engine
+    from sqlmodel import Session, select
+    from app.models.user import User
+    with Session(engine) as session:
+        u = session.exec(select(User).where(User.email == test_email)).first()
+        if u:
+            u.is_active = True
+            session.add(u)
+            session.commit()
 
     # Test 2: Register again with same email -> Rejected (409 Conflict)
     status_code, body = make_request("/signup", payload={"email": test_email, "password": password, "name": "Duplicate User"})

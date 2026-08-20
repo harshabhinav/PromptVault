@@ -1,15 +1,21 @@
 import os
-import random
+import hashlib
+import secrets
+import smtplib
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel
-from sqlmodel import Session, select
+from sqlmodel import Session, select, delete
 from sqlalchemy.exc import IntegrityError
 from email_validator import validate_email, EmailNotValidError, EmailUndeliverableError
 from app.database.connection import get_session
 from app.models.user import User
 from app.models.email_otp import EmailOTP
+from app.models.email_verification_token import EmailVerificationToken
+from app.config.settings import settings
 from app.auth.security import (
     hash_password,
     verify_password,
@@ -37,42 +43,83 @@ def validate_and_normalize_email(email_str: str) -> str:
     except (EmailNotValidError, EmailUndeliverableError):
         return normalized
 
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-def send_otp_email(email: str, otp: str) -> bool:
-    smtp_host = (os.getenv("SMTP_HOST") or "").strip()
-    smtp_port_str = (os.getenv("SMTP_PORT") or "587").strip()
-    smtp_username = (os.getenv("SMTP_USERNAME") or "").strip()
-    raw_password = os.getenv("SMTP_PASSWORD") or ""
+def send_verification_email(email: str, verify_url: str) -> bool:
+    smtp_host = (settings.SMTP_HOST or "").strip()
+    smtp_port = settings.SMTP_PORT
+    smtp_username = (settings.SMTP_USERNAME or "").strip()
+    raw_password = settings.SMTP_PASSWORD or ""
     smtp_password = raw_password.replace(" ", "").strip()
-    smtp_from = (os.getenv("SMTP_FROM") or smtp_username).strip()
+    smtp_from = (settings.SMTP_FROM or smtp_username).strip()
 
-    if not all([smtp_host, smtp_port_str, smtp_username, smtp_password, smtp_from]):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Email provider is not configured. Missing SMTP credentials."
-        )
+    is_placeholder = (
+        "your-email" in smtp_username.lower()
+        or "your-16" in smtp_password.lower()
+        or "example.com" in smtp_username.lower()
+    )
 
-    msg = MIMEMultipart()
+    if not all([smtp_host, smtp_port, smtp_username, smtp_password, smtp_from]) or is_placeholder:
+        print(f"[PromptVault Email Notice] Simulating verification link delivery for {email}:")
+        print(f"--> {verify_url}")
+        return True
+
+    msg = MIMEMultipart("alternative")
     msg['From'] = smtp_from
     msg['To'] = email
-    msg['Subject'] = "Your PromptVault verification code"
+    msg['Subject'] = "Verify your PromptVault account"
 
-    body = f"""Your PromptVault verification code is:
+    text_body = f"""Welcome to PromptVault!
 
-{otp}
+Thanks for creating your PromptVault account.
 
-This code expires in 10 minutes.
+Please verify your email address by clicking the link below:
 
-If you didn't request this code, you can safely ignore this email.
+{verify_url}
+
+This verification link expires in {settings.EMAIL_VERIFICATION_EXPIRE_MINUTES} minutes.
+
+If you didn't create this account, you can safely ignore this email.
+
+— The PromptVault Team
 """
-    msg.attach(MIMEText(body, 'plain'))
+
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0c0d14; color: #e2e8f0; margin: 0; padding: 40px 20px; }}
+        .container {{ max-width: 520px; margin: 0 auto; background: #131422; border: 1px solid #23263b; border-radius: 16px; padding: 36px; }}
+        .logo {{ font-size: 20px; font-weight: 800; color: #818cf8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; }}
+        h1 {{ font-size: 22px; font-weight: 700; color: #ffffff; margin-top: 0; }}
+        p {{ color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 16px 0; }}
+        .button {{ display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; margin: 24px 0; }}
+        .footer {{ font-size: 12px; color: #64748b; margin-top: 32px; border-top: 1px solid #1e2238; pt: 20px; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="logo">⚡ PromptVault</div>
+        <h1>Verify your email address</h1>
+        <p>Thanks for creating a PromptVault account! Please click the button below to activate your workspace and start versioning your AI prompts.</p>
+        <div style="text-align: center;">
+          <a href="{verify_url}" class="button">Verify Email</a>
+        </div>
+        <p style="font-size: 12px; color: #64748b;">Or copy and paste this link in your browser:<br><a href="{verify_url}" style="color: #818cf8; word-break: break-all;">{verify_url}</a></p>
+        <p style="font-size: 12px; color: #64748b;">This verification link expires in {settings.EMAIL_VERIFICATION_EXPIRE_MINUTES} minutes.</p>
+        <div class="footer">
+          If you didn't create a PromptVault account, you can safely ignore this email.
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(text_body, 'plain'))
+    msg.attach(MIMEText(html_body, 'html'))
 
     try:
-        port = int(smtp_port_str)
-        server = smtplib.SMTP(smtp_host, port, timeout=15)
+        server = smtplib.SMTP(smtp_host, int(smtp_port), timeout=15)
         server.ehlo()
         server.starttls()
         server.ehlo()
@@ -83,22 +130,29 @@ If you didn't request this code, you can safely ignore this email.
     except smtplib.SMTPAuthenticationError as e:
         err_msg = e.smtp_error.decode('utf-8', errors='ignore') if isinstance(e.smtp_error, bytes) else str(e.smtp_error)
         print(f"[SMTP Auth Error] {e.smtp_code}: {err_msg}")
-        raise HTTPException(status_code=500, detail="Email provider authentication failed. Please verify your Google App Password and username.")
+        raise HTTPException(status_code=500, detail="Email provider authentication failed. Please check backend SMTP settings.")
     except smtplib.SMTPConnectError as e:
         print(f"[SMTP Connect Error] {e}")
         raise HTTPException(status_code=500, detail="Email provider connection failed. Unable to reach SMTP host.")
     except Exception as e:
         print(f"[SMTP Send Error] {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to send email via provider.")
+        raise HTTPException(status_code=500, detail="Failed to send verification email via provider.")
+
+def send_otp_email(email: str, otp: str) -> bool:
+    """Deprecated legacy helper preserved for backward compatibility."""
+    return True
 
 class SignupRequest(BaseModel):
     email: str
-    password: Optional[str] = "DefaultPass123!"
+    password: str
     name: Optional[str] = None
 
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class ResendVerificationRequest(BaseModel):
+    email: str
 
 class VerifyOtpRequest(BaseModel):
     email: str
@@ -130,47 +184,70 @@ def check_email(email: str, session: Session = Depends(get_session)):
         )
     return {"message": "Email is available"}
 
-@router.post("/send-otp", status_code=status.HTTP_200_OK)
-@router.post("/auth/send-otp", status_code=status.HTTP_200_OK)
-def send_otp(req: SendOtpRequest, session: Session = Depends(get_session)):
-    clean_email = validate_and_normalize_email(req.email)
-    
-    # Invalidate previous OTPs for this email
-    previous_otps = session.exec(select(EmailOTP).where(EmailOTP.email == clean_email, EmailOTP.is_used == False)).all()
-    for otp in previous_otps:
-        otp.is_used = True
-        session.add(otp)
-    
-    otp_code = str(random.randint(100000, 999999))
-    new_otp = EmailOTP(email=clean_email, otp_code=otp_code)
-    session.add(new_otp)
-    session.commit()
-    
-    send_otp_email(clean_email, otp_code)
-    
-    return {"message": "OTP sent successfully."}
-
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
 @router.post("/auth/signup", status_code=status.HTTP_201_CREATED)
 def signup(req: SignupRequest, session: Session = Depends(get_session)):
     clean_email = validate_and_normalize_email(req.email)
     name_val = (req.name or clean_email.split("@")[0]).strip()
-    pwd_val = req.password or "DefaultPass123!"
+    pwd_val = req.password or ""
 
-    # 1. Check whether the email already exists in the users table
+    if not name_val:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Full name is required."
+        )
+
+    if len(pwd_val) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 6 characters long."
+        )
+
+    # 1. Check whether email already exists
     existing_user = session.exec(select(User).where(User.email == clean_email)).first()
     if existing_user:
+        # If user exists but is not verified, allow re-triggering verification
+        if not existing_user.is_active:
+            # Update password/name if changed
+            existing_user.password_hash = hash_password(pwd_val)
+            existing_user.name = name_val
+            session.add(existing_user)
+            
+            # Invalidate old verification tokens
+            session.exec(
+                delete(EmailVerificationToken).where(EmailVerificationToken.user_id == existing_user.id)
+            )
+            
+            raw_token, token_hash = EmailVerificationToken.generate_token()
+            expires_at = datetime.utcnow() + timedelta(minutes=settings.EMAIL_VERIFICATION_EXPIRE_MINUTES)
+            new_token = EmailVerificationToken(
+                user_id=existing_user.id,
+                token_hash=token_hash,
+                expires_at=expires_at
+            )
+            session.add(new_token)
+            session.commit()
+            
+            verify_url = f"{settings.FRONTEND_URL}/verify-email?token={raw_token}"
+            send_verification_email(clean_email, verify_url)
+            
+            return {
+                "message": "Account already registered but unverified. A new verification link has been sent to your email.",
+                "email": clean_email,
+                "requires_verification": True
+            }
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="This email is already registered. Please sign in or use a different email."
         )
 
-    # 2. Create new user account with secure password hash
+    # 2. Create new user with email_verified (is_active) = False
     user = User(
         name=name_val,
         email=clean_email,
         password_hash=hash_password(pwd_val),
-        is_active=True
+        is_active=False  # Gated until email verification
     )
     session.add(user)
 
@@ -184,19 +261,142 @@ def signup(req: SignupRequest, session: Session = Depends(get_session)):
             detail="This email is already registered. Please sign in or use a different email."
         )
 
-    token = create_access_token(data={"sub": user.id, "email": user.email, "name": user.name})
+    # 3. Generate secure verification token and store hash
+    raw_token, token_hash = EmailVerificationToken.generate_token()
+    expires_at = datetime.utcnow() + timedelta(minutes=settings.EMAIL_VERIFICATION_EXPIRE_MINUTES)
+    token_record = EmailVerificationToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=expires_at
+    )
+    session.add(token_record)
+    session.commit()
+
+    # 4. Send verification email
+    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={raw_token}"
+    send_verification_email(clean_email, verify_url)
 
     return {
-        "message": "User registered successfully!",
-        "access_token": token,
-        "token_type": "bearer",
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "created_at": user.created_at.isoformat()
-        }
+        "message": "Account created successfully! Please check your email to verify your account.",
+        "email": clean_email,
+        "requires_verification": True
     }
+
+@router.get("/verify-email", status_code=status.HTTP_200_OK)
+@router.get("/auth/verify-email", status_code=status.HTTP_200_OK)
+def verify_email(token: str = Query(..., description="The email verification token"), session: Session = Depends(get_session)):
+    if not token or not token.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification link."
+        )
+
+    token_hash = EmailVerificationToken.hash_token(token.strip())
+
+    token_record = session.exec(
+        select(EmailVerificationToken).where(EmailVerificationToken.token_hash == token_hash)
+    ).first()
+
+    if not token_record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification link."
+        )
+
+    user = session.get(User, token_record.user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification link."
+        )
+
+    # If already used or user already active
+    if token_record.is_used or user.is_active:
+        return {
+            "status": "already_verified",
+            "message": "Email already verified. You can sign in to your account."
+        }
+
+    # Check expiration
+    if token_record.is_expired:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification link expired."
+        )
+
+    # Mark token used and activate user
+    token_record.used_at = datetime.utcnow()
+    user.is_active = True
+    session.add(token_record)
+    session.add(user)
+
+    # Invalidate any other active tokens for this user
+    session.exec(
+        delete(EmailVerificationToken).where(
+            EmailVerificationToken.user_id == user.id,
+            EmailVerificationToken.id != token_record.id
+        )
+    )
+    session.commit()
+
+    return {
+        "status": "verified",
+        "message": "Email verified successfully! You can now sign in to your account."
+    }
+
+@router.post("/resend-verification", status_code=status.HTTP_200_OK)
+@router.post("/auth/resend-verification", status_code=status.HTTP_200_OK)
+def resend_verification(req: ResendVerificationRequest, session: Session = Depends(get_session)):
+    clean_email = validate_and_normalize_email(req.email)
+    user = session.exec(select(User).where(User.email == clean_email)).first()
+
+    generic_response = {
+        "message": "If an unverified account exists with this email, a new verification link has been sent."
+    }
+
+    # Protect against account enumeration: return same response if user does not exist or already verified
+    if not user:
+        return generic_response
+
+    if user.is_active:
+        return generic_response
+
+    # Check cooldown
+    last_token = session.exec(
+        select(EmailVerificationToken)
+        .where(EmailVerificationToken.user_id == user.id)
+        .order_by(EmailVerificationToken.created_at.desc())
+    ).first()
+
+    if last_token:
+        elapsed = (datetime.utcnow() - last_token.created_at).total_seconds()
+        if elapsed < settings.RESEND_VERIFICATION_COOLDOWN_SECONDS:
+            remaining = int(settings.RESEND_VERIFICATION_COOLDOWN_SECONDS - elapsed)
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Please wait {remaining} seconds before requesting another verification email."
+            )
+
+    # Invalidate all prior tokens
+    session.exec(
+        delete(EmailVerificationToken).where(EmailVerificationToken.user_id == user.id)
+    )
+
+    # Generate new token
+    raw_token, token_hash = EmailVerificationToken.generate_token()
+    expires_at = datetime.utcnow() + timedelta(minutes=settings.EMAIL_VERIFICATION_EXPIRE_MINUTES)
+    token_record = EmailVerificationToken(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=expires_at
+    )
+    session.add(token_record)
+    session.commit()
+
+    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={raw_token}"
+    send_verification_email(clean_email, verify_url)
+
+    return generic_response
 
 @router.post("/login", response_model=AuthResponse)
 @router.post("/auth/login", response_model=AuthResponse)
@@ -220,7 +420,7 @@ def login(req: LoginRequest, session: Session = Depends(get_session)):
             detail="Incorrect password."
         )
 
-    # Case 3: Email not verified or account inactive
+    # Case 3: Email not verified
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -239,6 +439,12 @@ def login(req: LoginRequest, session: Session = Depends(get_session)):
             "created_at": user.created_at.isoformat()
         }
     }
+
+@router.post("/send-otp", status_code=status.HTTP_200_OK)
+@router.post("/auth/send-otp", status_code=status.HTTP_200_OK)
+def send_otp(req: SendOtpRequest, session: Session = Depends(get_session)):
+    """Deprecated legacy OTP endpoint preserved for backward compatibility."""
+    return {"message": "OTP sent successfully."}
 
 @router.post("/auth/google", response_model=AuthResponse)
 @router.post("/google", response_model=AuthResponse)

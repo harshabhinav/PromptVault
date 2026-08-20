@@ -394,5 +394,20 @@ export const settingsApi = {
   },
 };
 
+export const authApi = {
+  signup: async (data: { name: string; email: string; password: string }): Promise<{ message: string; email?: string; requires_verification?: boolean }> => {
+    const res = await api.post("/auth/signup", data);
+    return res.data;
+  },
+  verifyEmail: async (token: string): Promise<{ status: string; message: string }> => {
+    const res = await api.get(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+    return res.data;
+  },
+  resendVerification: async (email: string): Promise<{ message: string }> => {
+    const res = await api.post("/auth/resend-verification", { email });
+    return res.data;
+  },
+};
+
 export default api;
 

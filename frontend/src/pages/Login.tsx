@@ -16,7 +16,7 @@ const heroSubtitles = [
 
 export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initialMode = "signin" }) => {
   const navigate = useNavigate();
-  const { signInWithEmail, sendSignUpOTP, verifySignUpOTPAndRegister, signInWithGoogle } = useAuth();
+  const { signInWithEmail, signUp, resendVerification, signInWithGoogle } = useAuth();
   const shouldReduceMotion = useReducedMotion();
   
   // Rotating Subtitle Index
@@ -44,19 +44,19 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
   }, []);
 
   // In-place Auth Mode State
-  const [authMode, setAuthMode] = useState<"signin" | "signup" | "otp">(initialMode);
+  const [authMode, setAuthMode] = useState<"signin" | "signup" | "check_email">(initialMode);
 
   // Form Fields
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [otp, setOtp] = useState("");
   
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [otpResendCountdown, setOtpResendCountdown] = useState(0);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [resendCountdown, setResendCountdown] = useState(0);
   const [isNavigatingToDashboard, setIsNavigatingToDashboard] = useState(false);
 
   const navigateToDashboardWithTransition = async () => {
@@ -66,12 +66,12 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
   };
 
   useEffect(() => {
-    if (otpResendCountdown > 0) {
-      const timer = setTimeout(() => setOtpResendCountdown(otpResendCountdown - 1), 1000);
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [otpResendCountdown]);
+  }, [resendCountdown]);
 
   const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,21 +82,20 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
     
     setLoading(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     const { error } = await signInWithEmail(email, password);
     setLoading(false);
 
     if (!error) {
-      // Clear legacy remembered email if present
       localStorage.removeItem("promptvault_remembered_email");
-      
-      setEmail(""); // explicitly clear email
-      setPassword(""); // Clear password explicitly from state after successful login attempt
+      setEmail("");
+      setPassword("");
     }
 
     if (error) {
       setErrorMessage(error.message || "Failed to sign in. Please check your credentials.");
-      setPassword(""); // Clear password on error
+      setPassword("");
     } else {
       await navigateToDashboardWithTransition();
     }
@@ -121,50 +120,33 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
 
     setLoading(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
-    const { error } = await sendSignUpOTP(email);
+    const { error, requires_verification, message } = await signUp(fullName, email, password);
     setLoading(false);
 
     if (error) {
-      setErrorMessage(error.message || "Failed to send OTP.");
-      setPassword("");
-      setConfirmPassword("");
-    } else {
-      setAuthMode("otp");
-      setOtpResendCountdown(60);
+      setErrorMessage(error.message || "Failed to create account.");
+    } else if (requires_verification) {
+      setAuthMode("check_email");
+      setResendCountdown(60);
+      setSuccessMessage(message || "We've sent a verification link to your email.");
     }
   };
 
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otp.trim() || otp.length !== 6) {
-      setErrorMessage("Please enter a valid 6-digit code.");
-      return;
-    }
-    
+  const handleResendVerification = async () => {
     setLoading(true);
     setErrorMessage(null);
-    
-    const { error } = await verifySignUpOTPAndRegister(email, otp, password, fullName);
-    setLoading(false);
-    
-    if (error) {
-      setErrorMessage(error.message || "Incorrect verification code.");
-    } else {
-      await navigateToDashboardWithTransition();
-    }
-  };
+    setSuccessMessage(null);
 
-  const handleResendOtp = async () => {
-    setLoading(true);
-    setErrorMessage(null);
-    const { error } = await sendSignUpOTP(email);
+    const { error, message } = await resendVerification(email);
     setLoading(false);
     
     if (error) {
-      setErrorMessage(error.message || "Failed to resend OTP.");
+      setErrorMessage(error.message || "Failed to resend verification email.");
     } else {
-      setOtpResendCountdown(60);
+      setResendCountdown(60);
+      setSuccessMessage(message || "A new verification link has been sent to your email.");
     }
   };
 
@@ -180,14 +162,14 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
     }
   };
 
-  const switchAuthMode = (mode: "signin" | "signup" | "otp") => {
+  const switchAuthMode = (mode: "signin" | "signup" | "check_email") => {
     setErrorMessage(null);
-    if (mode !== "otp") {
+    setSuccessMessage(null);
+    if (mode !== "check_email") {
       setFullName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      setOtp("");
     }
     setAuthMode(mode);
   };
@@ -322,6 +304,18 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
               >
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{errorMessage}</span>
+              </motion.div>
+            )}
+
+            {/* Success Alert */}
+            {successMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 font-medium"
+              >
+                <Sparkles className="h-4 w-4 shrink-0" />
+                <span>{successMessage}</span>
               </motion.div>
             )}
 
@@ -546,71 +540,48 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                 </motion.div>
               ) : (
                 <motion.div
-                  key="otp"
+                  key="check_email"
                   initial={{ opacity: 0, x: 12 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -12 }}
                   transition={{ duration: 0.22, ease: "easeOut" }}
-                  className="space-y-6"
+                  className="space-y-6 text-center"
                 >
-                  <div className="text-center space-y-1.5">
-                    <h2 className="text-xl font-black text-foreground">Verify your email</h2>
-                    <p className="text-xs font-medium text-muted-foreground">
-                      We've sent a 6-digit verification code to your email.
+                  <div className="mx-auto w-12 h-12 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <Mail className="h-6 w-6" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-black text-foreground">Check your email</h2>
+                    <p className="text-xs text-muted-foreground leading-relaxed px-2">
+                      We've sent a secure verification link to <span className="font-semibold text-foreground">{email}</span>.
+                      Click the link in your email to activate your account.
+                    </p>
+                    <p className="text-[11px] text-muted-foreground/80">
+                      The link expires in 60 minutes.
                     </p>
                   </div>
 
-                  {/* OTP Form */}
-                  <form onSubmit={handleOtpSubmit} className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="otp-input" className="text-xs font-semibold text-muted-foreground text-center block">
-                        Enter Verification Code
-                      </Label>
-                      <Input
-                        id="otp-input"
-                        type="text"
-                        required
-                        maxLength={6}
-                        placeholder="_ _ _ _ _ _"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                        className="text-center tracking-[0.5em] text-lg font-mono h-12 transition-all duration-200 ease-in-out focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/80 hover:border-border/90"
-                      />
-                    </div>
-
-                    <div className="space-y-2 pt-2">
-                      <Button
-                        type="submit"
-                        isLoading={loading}
-                        disabled={loading || otp.length !== 6}
-                        className="w-full h-9 text-xs font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:brightness-110 text-white shadow-lg shadow-indigo-500/25 transition-all duration-200 ease-in-out hover:scale-[1.01] hover:shadow-indigo-500/40 active:scale-[0.99] cursor-pointer"
-                      >
-                        Verify Code
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleResendOtp}
-                        disabled={loading || otpResendCountdown > 0}
-                        className="w-full h-9 text-xs font-semibold hover:bg-white/5 border-border/50 text-foreground"
-                      >
-                        {otpResendCountdown > 0 
-                          ? `Resend Code (${otpResendCountdown}s)` 
-                          : "Resend Code"}
-                      </Button>
-                    </div>
-                  </form>
-
-                  {/* Navigation Switch back to Sign In */}
-                  <div className="text-center pt-2 text-xs text-muted-foreground">
-                    <button
+                  <div className="space-y-2 pt-2">
+                    <Button
                       type="button"
-                      onClick={() => switchAuthMode("signup")}
-                      className="text-indigo-400 font-bold hover:underline cursor-pointer"
+                      variant="outline"
+                      onClick={handleResendVerification}
+                      disabled={loading || resendCountdown > 0}
+                      className="w-full h-9 text-xs font-semibold hover:bg-white/5 border-border/50 text-foreground"
                     >
-                      Back to Sign Up
-                    </button>
+                      {resendCountdown > 0 
+                        ? `Resend Email (${resendCountdown}s)` 
+                        : "Resend Verification Email"}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      onClick={() => switchAuthMode("signin")}
+                      className="w-full h-9 text-xs font-bold bg-primary hover:bg-primary/90 text-white shadow-md transition-all duration-200"
+                    >
+                      Back to Sign In
+                    </Button>
                   </div>
                 </motion.div>
               )}

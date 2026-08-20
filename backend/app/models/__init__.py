@@ -8,6 +8,7 @@ from .comparison import Comparison
 from .playground_session import PlaygroundSession
 from .api_key import UserApiKey
 from .email_otp import EmailOTP
+from .email_verification_token import EmailVerificationToken
 
 __all__ = [
     "User",
@@ -19,5 +20,6 @@ __all__ = [
     "Comparison",
     "PlaygroundSession",
     "UserApiKey",
-    "EmailOTP"
+    "EmailOTP",
+    "EmailVerificationToken"
 ]

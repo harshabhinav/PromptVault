@@ -15,5 +15,8 @@ class Settings:
     SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
     SMTP_FROM: str = os.getenv("SMTP_FROM", "")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    EMAIL_VERIFICATION_EXPIRE_MINUTES: int = int(os.getenv("EMAIL_VERIFICATION_EXPIRE_MINUTES", "60"))
+    RESEND_VERIFICATION_COOLDOWN_SECONDS: int = int(os.getenv("RESEND_VERIFICATION_COOLDOWN_SECONDS", "60"))
 
 settings = Settings()

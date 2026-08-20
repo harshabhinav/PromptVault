@@ -42,8 +42,7 @@ def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Security(security)
 ) -> AuthenticatedUser:
     """
-    Extracts and validates JWT token from the Authorization header.
-    Decodes PromptVault JWTs or Supabase JWTs seamlessly.
+    Extracts and validates backend JWT token from Authorization header.
     """
     if not credentials or not credentials.credentials:
         raise HTTPException(
@@ -54,7 +53,6 @@ def get_current_user(
 
     token = credentials.credentials
     try:
-        # First attempt decoding with local JWT secret
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         user_id = payload.get("sub") or payload.get("user_id")
         email = payload.get("email") or "user@promptvault.io"
@@ -65,23 +63,6 @@ def get_current_user(
                 id=str(user_id),
                 email=str(email),
                 full_name=str(name)
-            )
-    except Exception:
-        pass
-
-    # Secondary attempt decoding raw claims (e.g. Supabase JWT)
-    try:
-        payload = jwt.decode(token, options={"verify_signature": False})
-        user_id = payload.get("sub") or payload.get("user_id")
-        email = payload.get("email") or "user@promptvault.io"
-        user_metadata = payload.get("user_metadata", {})
-        full_name = user_metadata.get("full_name") or email.split("@")[0]
-
-        if user_id:
-            return AuthenticatedUser(
-                id=str(user_id),
-                email=str(email),
-                full_name=str(full_name)
             )
     except Exception:
         pass

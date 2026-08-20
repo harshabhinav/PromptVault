@@ -10,6 +10,7 @@ import { Compare } from "./pages/Compare";
 import { Settings } from "./pages/Settings";
 import { Login } from "./pages/Login";
 import { SignUp } from "./pages/SignUp";
+import { VerifyEmail } from "./pages/VerifyEmail";
 
 // Instantiate the TanStack Query Client
 const queryClient = new QueryClient({
@@ -82,6 +83,14 @@ export const App: React.FC = () => {
               element={
                 <PublicOnlyRoute>
                   <Login initialMode="signup" />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/verify-email"
+              element={
+                <PublicOnlyRoute>
+                  <VerifyEmail />
                 </PublicOnlyRoute>
               }
             />
