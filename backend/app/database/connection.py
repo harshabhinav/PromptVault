@@ -1,24 +1,24 @@
 from sqlmodel import SQLModel, create_engine, Session
 from app.config.settings import settings
+import sys
 
-is_sqlite = settings.DATABASE_URL.startswith("sqlite")
-engine_kwargs = {}
-if is_sqlite:
-    engine_kwargs["connect_args"] = {"check_same_thread": False}
+# We expect a PostgreSQL URL in production.
+engine = create_engine(settings.DATABASE_URL, echo=False)
 
 try:
-    engine = create_engine(settings.DATABASE_URL, echo=False, **engine_kwargs)
     with engine.connect() as conn:
         pass
 except Exception as e:
-    print(f"[Database Connection Warning] Unable to connect to remote DB ({e}). Falling back to local SQLite DB.")
-    sqlite_url = "sqlite:///./promptvault.db"
-    engine = create_engine(sqlite_url, echo=False, connect_args={"check_same_thread": False})
+    print(f"[CRITICAL] Database Connection Error: Unable to connect to PostgreSQL at host.")
+    print("Please check your DATABASE_URL, network, and database server.")
+    sys.exit(1)
 
 def init_db():
-    # Importing all models here to register them on SQLModel metadata
-    import app.models  # Registers User, Blueprint, Version, TestCase, TestRun, Activity, Comparison, PlaygroundSession, UserApiKey
-    SQLModel.metadata.create_all(engine)
+    # Model imports to ensure they are registered with SQLModel.metadata
+    import app.models
+    # We no longer run create_all(engine) here.
+    # Production schema management is now handled by Alembic migrations.
+    pass
 
 def get_session():
     with Session(engine) as session:

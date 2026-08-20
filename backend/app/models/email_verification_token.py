@@ -9,7 +9,7 @@ class EmailVerificationToken(SQLModel, table=True):
     __tablename__ = "email_verification_tokens"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: str = Field(index=True, nullable=False, foreign_key="user.id")
+    user_id: str = Field(index=True, nullable=False, foreign_key="user.id", ondelete="CASCADE")
     token_hash: str = Field(index=True, nullable=False, unique=True)
     expires_at: datetime = Field(nullable=False)
     used_at: Optional[datetime] = Field(default=None)

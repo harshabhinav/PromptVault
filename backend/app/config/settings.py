@@ -1,10 +1,11 @@
 import os
 from dotenv import load_dotenv
+import sys
 
 load_dotenv()
 
 class Settings:
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./promptvault.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
     PORT: int = int(os.getenv("PORT", "8000"))
     HOST: str = os.getenv("HOST", "127.0.0.1")
     JWT_SECRET: str = os.getenv("JWT_SECRET", "promptvault_super_secret_jwt_key_2026_safe_hash")
@@ -20,3 +21,8 @@ class Settings:
     RESEND_VERIFICATION_COOLDOWN_SECONDS: int = int(os.getenv("RESEND_VERIFICATION_COOLDOWN_SECONDS", "60"))
 
 settings = Settings()
+
+if not settings.DATABASE_URL:
+    print("[CRITICAL] Configuration Error: DATABASE_URL environment variable is missing.")
+    print("PostgreSQL must be configured. Exiting.")
+    sys.exit(1)
