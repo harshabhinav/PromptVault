@@ -37,11 +37,51 @@ def validate_and_normalize_email(email_str: str) -> str:
     except (EmailNotValidError, EmailUndeliverableError):
         return normalized
 
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 def send_otp_email(email: str, otp: str) -> bool:
-    print(f"==================================================")
-    print(f"[MOCK EMAIL SERVICE] Sent OTP {otp} to {email}")
-    print(f"==================================================")
-    return True
+    smtp_host = os.getenv("SMTP_HOST")
+    smtp_port = os.getenv("SMTP_PORT")
+    smtp_username = os.getenv("SMTP_USERNAME")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    smtp_from = os.getenv("SMTP_FROM")
+
+    if not all([smtp_host, smtp_port, smtp_username, smtp_password, smtp_from]):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Email provider is not configured. Missing SMTP credentials."
+        )
+
+    msg = MIMEMultipart()
+    msg['From'] = smtp_from
+    msg['To'] = email
+    msg['Subject'] = "Your PromptVault verification code"
+
+    body = f"""Your PromptVault verification code is:
+
+{otp}
+
+This code expires in 10 minutes.
+
+If you didn't request this code, you can safely ignore this email.
+"""
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP(smtp_host, int(smtp_port))
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except smtplib.SMTPAuthenticationError:
+        raise HTTPException(status_code=500, detail="Email provider authentication failed.")
+    except smtplib.SMTPConnectError:
+        raise HTTPException(status_code=500, detail="Email provider connection failed.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to send email via provider.")
 
 class SignupRequest(BaseModel):
     email: str
