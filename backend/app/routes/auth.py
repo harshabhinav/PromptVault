@@ -42,13 +42,14 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def send_otp_email(email: str, otp: str) -> bool:
-    smtp_host = os.getenv("SMTP_HOST")
-    smtp_port = os.getenv("SMTP_PORT")
-    smtp_username = os.getenv("SMTP_USERNAME")
-    smtp_password = os.getenv("SMTP_PASSWORD")
-    smtp_from = os.getenv("SMTP_FROM")
+    smtp_host = (os.getenv("SMTP_HOST") or "").strip()
+    smtp_port_str = (os.getenv("SMTP_PORT") or "587").strip()
+    smtp_username = (os.getenv("SMTP_USERNAME") or "").strip()
+    raw_password = os.getenv("SMTP_PASSWORD") or ""
+    smtp_password = raw_password.replace(" ", "").strip()
+    smtp_from = (os.getenv("SMTP_FROM") or smtp_username).strip()
 
-    if not all([smtp_host, smtp_port, smtp_username, smtp_password, smtp_from]):
+    if not all([smtp_host, smtp_port_str, smtp_username, smtp_password, smtp_from]):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Email provider is not configured. Missing SMTP credentials."
@@ -70,17 +71,24 @@ If you didn't request this code, you can safely ignore this email.
     msg.attach(MIMEText(body, 'plain'))
 
     try:
-        server = smtplib.SMTP(smtp_host, int(smtp_port))
+        port = int(smtp_port_str)
+        server = smtplib.SMTP(smtp_host, port, timeout=15)
+        server.ehlo()
         server.starttls()
+        server.ehlo()
         server.login(smtp_username, smtp_password)
         server.send_message(msg)
         server.quit()
         return True
-    except smtplib.SMTPAuthenticationError:
-        raise HTTPException(status_code=500, detail="Email provider authentication failed.")
-    except smtplib.SMTPConnectError:
-        raise HTTPException(status_code=500, detail="Email provider connection failed.")
+    except smtplib.SMTPAuthenticationError as e:
+        err_msg = e.smtp_error.decode('utf-8', errors='ignore') if isinstance(e.smtp_error, bytes) else str(e.smtp_error)
+        print(f"[SMTP Auth Error] {e.smtp_code}: {err_msg}")
+        raise HTTPException(status_code=500, detail="Email provider authentication failed. Please verify your Google App Password and username.")
+    except smtplib.SMTPConnectError as e:
+        print(f"[SMTP Connect Error] {e}")
+        raise HTTPException(status_code=500, detail="Email provider connection failed. Unable to reach SMTP host.")
     except Exception as e:
+        print(f"[SMTP Send Error] {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail="Failed to send email via provider.")
 
 class SignupRequest(BaseModel):
