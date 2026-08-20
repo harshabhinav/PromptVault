@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PromptVault Extension Settings</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d14;
+      --surface: #13131f;
+      --elevated: #1a1a2e;
+      --border: rgba(255,255,255,0.08);
+      --purple: #6366f1;
+      --violet: #8b5cf6;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --sub: #94a3b8;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 40px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .container {
+      width: 520px;
+      max-width: 100%;
+      padding: 0 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    .brand {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--purple), var(--violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .field { margin-bottom: 20px; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sub);
+      margin-bottom: 7px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    input[type="text"], input[type="url"] {
+      width: 100%;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13.5px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+
+    input:focus {
+      border-color: rgba(99,102,241,0.6);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      transition: all 0.18s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple), var(--violet));
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(99,102,241,0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 4px 16px rgba(99,102,241,0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--sub);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      background: var(--elevated);
+      color: var(--text);
+    }
+
+    .status-msg {
+      font-size: 12.5px;
+      padding: 8px 12px;
+      border-radius: 7px;
+      margin-top: 14px;
+      display: none;
+    }
+    .status-msg.success {
+      background: rgba(16,185,129,0.12);
+      border: 1px solid rgba(16,185,129,0.25);
+      color: #34d399;
+    }
+    .status-msg.error {
+      background: rgba(244,63,94,0.12);
+      border: 1px solid rgba(244,63,94,0.25);
+      color: #fb7185;
+    }
+
+    .site-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .site-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--sub);
+    }
+
+    .site-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--violet));
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="icons/icon48.png" alt="PromptVault" class="logo" />
+      <div>
+        <div class="brand">PromptVault</div>
+        <div class="brand-sub">Extension Settings</div>
+      </div>
+    </div>
+
+    <!-- Backend URL Card -->
+    <div class="card">
+      <div class="card-title">Backend Connection</div>
+      <div class="field">
+        <label for="api-base">PromptVault API URL</label>
+        <input
+          type="url"
+          id="api-base"
+          placeholder="http://localhost:8000/api"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <p class="hint">
+          Local dev: <code>http://localhost:8000/api</code><br/>
+          Update this when you deploy PromptVault to a server.
+        </p>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="btn-save">Save Settings</button>
+        <button class="btn-ghost" id="btn-reset">Reset to Default</button>
+      </div>
+      <div class="status-msg" id="status-msg"></div>
+    </div>
+
+    <!-- Supported Sites Card -->
+    <div class="card">
+      <div class="card-title">Supported Platforms</div>
+      <div class="site-list">
+        <div class="site-item"><span class="site-dot"></span>ChatGPT — chat.openai.com</div>
+        <div class="site-item"><span class="site-dot"></span>Claude — claude.ai</div>
+        <div class="site-item"><span class="site-dot"></span>Gemini — gemini.google.com</div>
+        <div class="site-item"><span class="site-dot"></span>Perplexity — perplexity.ai</div>
+        <div class="site-item"><span class="site-dot"></span>Grok — grok.com</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

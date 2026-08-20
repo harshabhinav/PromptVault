@@ -1,0 +1,110 @@
+<!-- PromptVault Floating Glass Widget HTML Template -->
+<div id="pv-widget-overlay" class="pv-widget-overlay pv-hidden">
+  <div id="pv-widget-panel" class="pv-widget-panel">
+    
+    <!-- HEADER -->
+    <div class="pv-header">
+      <div class="pv-header-brand">
+        <img id="pv-logo-img" class="pv-logo-img" alt="PromptVault Logo" />
+        <span class="pv-header-title">Save to PromptVault</span>
+      </div>
+      <button id="pv-close-btn" class="pv-close-btn">✕</button>
+    </div>
+
+    <!-- PROMPT PREVIEW -->
+    <div class="pv-section pv-prompt-section">
+      <div class="pv-section-label">Prompt Preview</div>
+      <div id="pv-prompt-preview" class="pv-prompt-preview-box">
+        <span class="pv-placeholder">No prompt detected</span>
+      </div>
+    </div>
+
+    <!-- SEARCH INPUT -->
+    <div class="pv-section pv-search-section">
+      <div class="pv-search-wrap">
+        <span class="pv-search-icon">🔍</span>
+        <input
+          type="text"
+          id="pv-search-input"
+          class="pv-search-input"
+          placeholder="Search Blueprint"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="pv-search-clear" class="pv-search-clear pv-hidden">✕</button>
+      </div>
+    </div>
+
+    <!-- BLUEPRINT LIST -->
+    <div class="pv-section pv-list-section">
+      <!-- Loading State -->
+      <div id="pv-blueprints-loading" class="pv-status-row pv-hidden">
+        <div class="pv-spinner"></div>
+        <span>Loading blueprints...</span>
+      </div>
+      
+      <!-- Error State -->
+      <div id="pv-blueprints-error" class="pv-error-state pv-hidden">
+        <span>Unable to load blueprints</span>
+        <button id="pv-retry-load-btn" class="pv-btn pv-btn-ghost pv-btn-sm">Retry</button>
+      </div>
+
+      <!-- Empty State -->
+      <div id="pv-blueprints-empty" class="pv-empty-state pv-hidden">
+        <span>No blueprints found</span>
+      </div>
+
+      <div id="pv-blueprint-list" class="pv-blueprint-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- NEW BLUEPRINT BUTTON -->
+    <div class="pv-section pv-new-bp-section">
+      <button id="pv-new-bp-btn" class="pv-btn pv-btn-new">
+        <span>+ New Blueprint</span>
+      </button>
+    </div>
+
+    <!-- BOTTOM ACTIONS -->
+    <div class="pv-actions">
+      <button id="pv-quick-save-btn" class="pv-btn pv-btn-quick">Quick Save</button>
+      <div class="pv-actions-right">
+        <button id="pv-cancel-btn" class="pv-btn pv-btn-ghost">Cancel</button>
+        <button id="pv-save-btn" class="pv-btn pv-btn-primary" disabled>Save</button>
+      </div>
+    </div>
+
+    <!-- NEW BLUEPRINT MODAL -->
+    <div id="pv-modal-overlay" class="pv-modal-overlay pv-hidden">
+      <div class="pv-modal">
+        <div class="pv-modal-title">Create New Blueprint</div>
+        <input
+          type="text"
+          id="pv-modal-input"
+          class="pv-modal-input"
+          placeholder="Blueprint name..."
+          maxlength="60"
+          autocomplete="off"
+        />
+        <div id="pv-modal-error" class="pv-modal-error pv-hidden">⚠ Blueprint with this name already exists</div>
+        <div class="pv-modal-actions">
+          <button id="pv-modal-cancel" class="pv-btn pv-btn-ghost">Cancel</button>
+          <button id="pv-modal-create" class="pv-btn pv-btn-primary" disabled>Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE TOAST -->
+    <div id="pv-toast" class="pv-toast pv-hidden">
+      <div id="pv-toast-icon" class="pv-toast-icon">
+        <img id="pv-toast-logo-img" class="pv-toast-logo-img" alt="Logo" />
+      </div>
+      <div class="pv-toast-content">
+        <div id="pv-toast-title" class="pv-toast-title">Saved</div>
+        <div id="pv-toast-sub" class="pv-toast-sub">Version saved successfully</div>
+      </div>
+    </div>
+
+  </div>
+</div>

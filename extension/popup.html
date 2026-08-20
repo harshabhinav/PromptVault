@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PromptVault Quick Save</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- ─── HEADER ─── -->
+  <header class="header">
+    <div class="header-logo" style="display: flex; align-items: center; gap: 8px;">
+      <img src="pv-logo.png" alt="PromptVault Logo" style="width: 22px; height: 22px; object-fit: contain;" />
+      <span class="logo-text">Save to PromptVault</span>
+    </div>
+    <a href="#" class="header-settings" id="btn-open-options" title="Settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    </a>
+  </header>
+
+  <!-- ─── AUTH WALL ─── -->
+  <div id="view-auth" class="view hidden">
+    <div class="auth-body">
+      <div class="auth-icon" style="background: none; border: none; width: auto; height: auto;">
+        <img src="pv-logo.png" alt="PromptVault Logo" style="width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(139,92,246,0.45));" />
+      </div>
+      <h2 class="auth-title" style="font-size: 15px; font-weight: 800;">Save prompts from anywhere</h2>
+      <p class="auth-sub" style="font-size: 12px; color: var(--pv-text-muted);">You're not signed in</p>
+      <button class="btn btn-primary full-width" id="btn-sign-in" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); font-weight: 700; height: 38px; border-radius: 8px; margin-top: 4px;">
+        Login / Sign Up
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── MAIN LIST VIEW ─── -->
+  <div id="view-list" class="view">
+
+    <!-- Prompt Preview Section -->
+    <div class="prompt-section">
+      <label class="field-label">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+        Captured Prompt
+      </label>
+      <textarea
+        id="prompt-text"
+        class="prompt-textarea"
+        placeholder="Paste or type your prompt here…"
+        rows="3"
+      ></textarea>
+      <div class="source-badge" id="source-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        </svg>
+        <span id="source-site-label">ChatGPT</span>
+      </div>
+    </div>
+
+    <!-- Blueprint Section -->
+    <div class="section">
+      <!-- Search wrap -->
+      <div class="search-wrap">
+        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="text"
+          id="blueprint-search"
+          class="search-input"
+          placeholder="Search Blueprint…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="search-clear hidden" id="search-clear" title="Clear search">✕</button>
+      </div>
+
+      <label class="field-label" style="margin-top:10px;">
+        📁 Recent Blueprints (Click to Quick Save)
+      </label>
+
+      <!-- Loading -->
+      <div id="blueprints-loading" class="loading-row hidden">
+        <div class="spinner"></div>
+        <span>Loading blueprints…</span>
+      </div>
+
+      <!-- Blueprint list -->
+      <div id="blueprint-list" class="blueprint-list"></div>
+
+      <!-- New Blueprint button -->
+      <button class="btn btn-ghost new-bp-btn" id="btn-new-blueprint">
+        ➕ New Blueprint
+      </button>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-primary" id="btn-quick-save" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);">Quick Save</button>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-ghost" id="btn-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-static" disabled>Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── NEW BLUEPRINT FORM VIEW ─── -->
+  <div id="view-new-blueprint" class="view hidden">
+    <div class="section">
+      <label class="field-label">
+        📁 Create New Blueprint
+      </label>
+      <input
+        type="text"
+        id="new-bp-name"
+        class="text-input"
+        placeholder="Enter blueprint name…"
+        maxlength="80"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <p class="field-hint">Creates a new blueprint folder and saves this prompt as Version V1.</p>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="btn-back">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Back
+      </button>
+      <button class="btn btn-primary" id="btn-save-new" disabled>
+        Save
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── SUCCESS VIEW ─── -->
+  <div id="view-success" class="view hidden">
+    <div class="success-body">
+      <div class="success-icon" style="border: none; border-radius: 0; background: none; box-shadow: none; width: auto; height: auto;">
+        <img src="pv-logo.png" alt="Logo" style="width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(139,92,246,0.45));" />
+      </div>
+      <h2 class="success-title" id="success-title">Saved to Marketing!</h2>
+      <p class="success-sub" id="success-sub">Version V1 saved successfully.</p>
+      
+      <div class="success-meta">
+        <div class="meta-row">
+          <span class="meta-label">Blueprint</span>
+          <span class="meta-value" id="success-blueprint">Marketing</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Version</span>
+          <span class="meta-value version-badge" id="success-version">V1</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Source</span>
+          <span class="meta-value" id="success-source">ChatGPT</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── ERROR TOAST ─── -->
+  <div id="error-toast" class="error-toast hidden">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="error-msg"></span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

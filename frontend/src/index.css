@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 98%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;      /* #09090B */
+    --foreground: 0 0% 98%;          /* #FAFAFA */
+    --card: 240 5.8% 10.2%;          /* #18181B */
+    --card-foreground: 0 0% 98%;     /* #FAFAFA */
+    --popover: 240 5.8% 10.2%;       /* #18181B */
+    --popover-foreground: 0 0% 98%;  /* #FAFAFA */
+    --primary: 239 84% 66%;          /* #6366F1 (Indigo) */
+    --primary-foreground: 0 0% 98%;  /* #FAFAFA */
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 65%;  /* #A1A1AA */
+    --accent: 162 84% 39%;           /* #10B981 (Emerald) */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 17%;
+    --input: 240 3.7% 17%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+}
+
+/* Custom Utilities for Premium Linear/Vercel Aesthetic */
+.glass-panel {
+  @apply bg-white/70 dark:bg-black/50 backdrop-blur-md border border-black/5 dark:border-white/5;
+}
+
+.glass-card {
+  @apply bg-card/40 dark:bg-card/20 backdrop-blur-lg border border-border/80 shadow-sm transition-all duration-300 hover:shadow-md hover:border-border;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-neutral-900 to-neutral-500 dark:from-white dark:to-neutral-500;
+}
+
+.glow-purple {
+  box-shadow: 0 0 50px -12px rgba(168, 85, 247, 0.2);
+}
+
+.glow-blue {
+  box-shadow: 0 0 50px -12px rgba(59, 130, 246, 0.2);
+}
+
+/* Grid backgrounds */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(128, 128, 128, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(128, 128, 128, 0.05) 1px, transparent 1px);
+}
+
+.bg-dot-pattern {
+  background-size: 20px 20px;
+  background-image: radial-gradient(circle, rgba(128, 128, 128, 0.08) 1px, transparent 1px);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/35;
+}
