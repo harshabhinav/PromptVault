@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 class Blueprint(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: Optional[str] = Field(default=None, index=True)
+    user_id: str = Field(index=True, nullable=False)
     name: str = Field(index=True)
     description: Optional[str] = None
     forked_from: Optional[int] = Field(default=None, foreign_key="blueprint.id", nullable=True)

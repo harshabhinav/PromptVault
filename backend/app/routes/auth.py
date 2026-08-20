@@ -165,7 +165,7 @@ def signup(req: SignupRequest, session: Session = Depends(get_session)):
             detail="This email is already registered. Please sign in or use a different email."
         )
 
-    # 2. Create new user with auto-generated UUID (Since OTP is now handled by Supabase)
+    # 2. Create new user account with secure password hash
     user = User(
         name=name_val,
         email=clean_email,

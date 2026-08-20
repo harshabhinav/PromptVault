@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 class Version(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: Optional[str] = Field(default=None, index=True)
+    user_id: str = Field(index=True, nullable=False)
     blueprint_id: int = Field(foreign_key="blueprint.id", index=True)
     version_number: Optional[int] = Field(default=None, nullable=True)  # Sequential version number per blueprint (V1=1, V2=2, ...)
     system_prompt: str = Field(default="")
