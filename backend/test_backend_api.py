@@ -4,9 +4,17 @@ from sqlmodel import SQLModel, create_engine, Session
 from app.main import app
 from app.database.connection import get_session
 
-# We will run tests on a separate test database to avoid polluting promptvault.db
-TEST_DATABASE_URL = "sqlite:///./test_promptvault.db"
-test_engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+from app.config.settings import settings
+import sys
+
+# We expect a PostgreSQL URL for testing in CI/CD or local
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", settings.DATABASE_URL)
+
+if TEST_DATABASE_URL.startswith("sqlite"):
+    print("Cannot run tests with SQLite. A proper PostgreSQL database is required.")
+    sys.exit(1)
+
+test_engine = create_engine(TEST_DATABASE_URL, echo=False)
 
 def override_get_session():
     with Session(test_engine) as session:
@@ -199,11 +207,6 @@ def run_tests():
 
     # Clean up test database file
     SQLModel.metadata.drop_all(test_engine)
-    try:
-        os.remove("test_promptvault.db")
-        print("Test database file removed.")
-    except OSError:
-        pass
 
     print("\n[SUCCESS] ALL API ENDPOINTS VERIFIED AND WORKING SUCCESSFULLY!")
 
