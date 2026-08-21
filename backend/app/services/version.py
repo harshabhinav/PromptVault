@@ -22,9 +22,10 @@ class VersionService:
         ).one_or_none()
         next_num = (max_num or 0) + 1
 
-        version = Version.model_validate(data)
-        version.user_id = user_id
-        version.version_number = next_num
+        version_dict = data.model_dump()
+        version_dict["user_id"] = user_id
+        version_dict["version_number"] = next_num
+        version = Version.model_validate(version_dict)
         session.add(version)
         session.commit()
         session.refresh(version)

@@ -1286,6 +1286,12 @@ export const BlueprintEditor: React.FC = () => {
                     <span className="text-muted-foreground block truncate">Template length: {userPrompt.length} chars</span>
                     <span className="text-muted-foreground block">Model: {modelName} • Temp: {temperature}</span>
                   </div>
+                  {commitVersionMutation.isError && (
+                    <div className="p-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive flex items-center gap-2">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                      <span>{(commitVersionMutation.error as any)?.response?.data?.detail || "Unable to save version. Please try again."}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
