@@ -43,8 +43,9 @@ class BlueprintService:
                 )
         
         data.name = data.name.strip()
-        blueprint = Blueprint.model_validate(data)
-        blueprint.user_id = user_id
+        bp_dict = data.model_dump()
+        bp_dict["user_id"] = user_id
+        blueprint = Blueprint.model_validate(bp_dict)
         session.add(blueprint)
         session.commit()
         session.refresh(blueprint)
