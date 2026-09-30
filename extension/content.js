@@ -169,7 +169,7 @@
     btn.className = "pv-save-btn";
     btn.setAttribute("title", "Save to PromptVault");
     btn.innerHTML = `
-      <img src="${chrome.runtime.getURL('pv-logo.png')}" class="pv-icon-logo" style="width: 15px; height: 15px; object-fit: contain; flex-shrink: 0;" alt="Logo" />
+      <video src="${chrome.runtime.getURL('pv-logo-loop.mp4')}" class="pv-icon-logo" style="width: 15px; height: 15px; object-fit: contain; flex-shrink: 0;" autoplay loop muted playsinline></video>
       <span>Save to PromptVault</span>
     `;
 

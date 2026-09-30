@@ -81,7 +81,7 @@ class PromptVaultWidget {
 
     // Dynamic Logo Assignment
     try {
-      const logoUrl = chrome.runtime.getURL("pv-logo.png");
+      const logoUrl = chrome.runtime.getURL("pv-logo-loop.mp4");
       if (this.$("#pv-logo-img")) this.$("#pv-logo-img").src = logoUrl;
       if (this.$("#pv-toast-logo-img")) this.$("#pv-toast-logo-img").src = logoUrl;
     } catch (e) {
