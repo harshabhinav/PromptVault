@@ -396,6 +396,7 @@ class PromptVaultWidget {
         this.$("#pv-save-btn").disabled = false;
         
         this.renderBlueprintList(this.blueprints);
+        this.updateQuickSaveState();
       });
     });
   }
@@ -450,6 +451,7 @@ class PromptVaultWidget {
       this.selectedBlueprintId = null;
       this.$$(".pv-bp-card").forEach((card) => card.classList.remove("pv-selected"));
       this.$("#pv-save-btn").disabled = true;
+      this.updateQuickSaveState();
       console.log("[PromptVault] Blueprint deselected");
       return;
     }
@@ -460,6 +462,7 @@ class PromptVaultWidget {
       card.classList.toggle("pv-selected", String(card.dataset.id) === String(id));
     });
     this.$("#pv-save-btn").disabled = false;
+    this.updateQuickSaveState();
 
     console.log("[PromptVault] Blueprint selected:", id);
     const bpKey = this.getUserStorageKey("lastBlueprintId");
@@ -469,6 +472,24 @@ class PromptVaultWidget {
     data[bpKeyLegacy] = id;
     chrome.storage.local.set(data);
   }
+
+  /**
+   * Derives Quick Save button state from selectedBlueprintId.
+   * Blueprint selected  → Quick Save disabled (no blink, no highlight, not clickable).
+   * No blueprint        → Quick Save active (purple, clickable).
+   */
+  updateQuickSaveState() {
+    const btn = this.$("#pv-quick-save-btn");
+    if (!btn) return;
+    if (this.selectedBlueprintId !== null) {
+      btn.classList.add("pv-qs-disabled");
+      btn.disabled = true;
+    } else {
+      btn.classList.remove("pv-qs-disabled");
+      btn.disabled = false;
+    }
+  }
+
 
   /**
    * POSTs version save request to database
@@ -522,6 +543,7 @@ class PromptVaultWidget {
   }
 
   async quickSave() {
+    if (this.selectedBlueprintId !== null) return;
     const promptText = this.currentPrompt ? this.currentPrompt.text : "";
 
     if (!promptText) {

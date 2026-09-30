@@ -211,6 +211,7 @@ function renderBlueprintList(blueprints) {
     item.addEventListener("click", () => selectPopupBlueprint(bp.id));
     list.appendChild(item);
   });
+  updateQuickSaveState();
 }
 
 // ── Blueprint Selection Toggle ────────────────────────────────────────────────
@@ -230,6 +231,19 @@ function selectPopupBlueprint(blueprintId) {
       el.classList.toggle("selected", String(el.dataset.id) === String(blueprintId));
     });
     $("btn-save-static").disabled = false;
+  }
+  updateQuickSaveState();
+}
+
+function updateQuickSaveState() {
+  const qsBtn = $("btn-quick-save");
+  if (!qsBtn) return;
+  if (selectedBlueprintId !== null) {
+    qsBtn.classList.add("pv-qs-disabled");
+    qsBtn.disabled = true;
+  } else {
+    qsBtn.classList.remove("pv-qs-disabled");
+    qsBtn.disabled = false;
   }
 }
 
@@ -270,6 +284,7 @@ async function quickSaveToBlueprint(blueprintId) {
 }
 
 async function autoQuickSave() {
+  if (selectedBlueprintId !== null) return;
   const promptText = $("prompt-text").value.trim();
   if (!promptText) {
     showError("Please enter or paste a prompt to save.");

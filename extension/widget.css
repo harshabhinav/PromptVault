@@ -304,10 +304,26 @@
   box-shadow: 0 2px 10px rgba(139, 92, 246, 0.3);
 }
 
+
 .pv-btn-quick:hover {
   background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
   box-shadow: 0 4px 14px rgba(139, 92, 246, 0.45);
 }
+
+/* Quick Save disabled state — when a blueprint is selected */
+.pv-btn-quick.pv-qs-disabled {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #52525b !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  opacity: 0.45;
+}
+.pv-btn-quick.pv-qs-disabled:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: none !important;
+}
+
 
 .pv-btn-ghost {
   background: transparent;

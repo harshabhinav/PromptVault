@@ -322,6 +322,20 @@ body::before {
   box-shadow: none;
 }
 
+/* Quick Save disabled state — when a blueprint is selected */
+.btn-primary.pv-qs-disabled {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #52525b !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  opacity: 0.45;
+}
+.btn-primary.pv-qs-disabled:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: none !important;
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--pv-text-secondary);

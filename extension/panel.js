@@ -382,6 +382,7 @@ class PromptVaultWidget {
         this.$("#pv-save-btn").disabled = false;
         
         this.renderBlueprintList(this.blueprints);
+        this.updateQuickSaveState();
       });
     });
   }
@@ -431,19 +432,48 @@ class PromptVaultWidget {
   }
 
   selectBlueprint(id) {
+    // Toggle: tapping the already-selected blueprint deselects it
+    if (String(this.selectedBlueprintId) === String(id)) {
+      this.selectedBlueprintId = null;
+      this.$$(".pv-bp-card").forEach((card) => card.classList.remove("pv-selected"));
+      this.$("#pv-save-btn").disabled = true;
+      this.updateQuickSaveState();
+      console.log("[PromptVault] Blueprint deselected");
+      return;
+    }
+
+    // Select new blueprint
     this.selectedBlueprintId = id;
     this.$$(".pv-bp-card").forEach((card) => {
       card.classList.toggle("pv-selected", String(card.dataset.id) === String(id));
     });
     this.$("#pv-save-btn").disabled = false;
+    this.updateQuickSaveState();
 
-    console.log("[PromptVault] Saving last blueprint");
+    console.log("[PromptVault] Blueprint selected:", id);
     const bpKey = this.getUserStorageKey("lastBlueprintId");
     const bpKeyLegacy = this.getUserStorageKey("last_selected_blueprint_id");
     const data = {};
     data[bpKey] = id;
     data[bpKeyLegacy] = id;
     chrome.storage.local.set(data);
+  }
+
+  /**
+   * Derives Quick Save button state from selectedBlueprintId.
+   * Blueprint selected  → Quick Save disabled (no blink, no highlight, not clickable).
+   * No blueprint        → Quick Save active (purple, clickable).
+   */
+  updateQuickSaveState() {
+    const btn = this.$("#pv-quick-save-btn");
+    if (!btn) return;
+    if (this.selectedBlueprintId !== null) {
+      btn.classList.add("pv-qs-disabled");
+      btn.disabled = true;
+    } else {
+      btn.classList.remove("pv-qs-disabled");
+      btn.disabled = false;
+    }
   }
 
   /**
@@ -501,6 +531,7 @@ class PromptVaultWidget {
    * Saves to user's last selected blueprint automatically
    */
   async quickSave() {
+    if (this.selectedBlueprintId !== null) return;
     console.log("[PromptVault] Quick save started");
     chrome.runtime.sendMessage({ type: "CHECK_AUTH" }, (authRes) => {
       if (chrome.runtime.lastError || !authRes?.authenticated) {
