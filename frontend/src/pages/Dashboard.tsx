@@ -461,7 +461,14 @@ export const Dashboard: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] py-16 text-center select-none">
         <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-5 shadow-lg shadow-indigo-500/5">
-          <img src="/pv-logo.png" alt="PromptVault Logo" className="w-12 h-12 object-contain" />
+          <video
+            src="/pv-logo-loop.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-12 h-12 object-contain"
+          />
         </div>
         <h2 className="text-xl font-extrabold text-foreground tracking-tight">Authentication Required</h2>
         <p className="text-xs text-muted-foreground/80 mt-1.5 max-w-sm leading-relaxed">
@@ -552,7 +559,14 @@ export const Dashboard: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                   <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 shrink-0 flex items-center justify-center">
-                    <img src="/pv-logo.png" alt="PromptVault Logo" className="w-8 h-8 object-contain" />
+                    <video
+                      src="/pv-logo-loop.mp4"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-8 h-8 object-contain"
+                    />
                   </div>
                   <div>
                     <h3 className="text-sm font-extrabold text-emerald-400 tracking-tight flex items-center gap-2">
@@ -578,7 +592,14 @@ export const Dashboard: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                   <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 shrink-0 flex items-center justify-center">
-                    <img src="/pv-logo.png" alt="PromptVault Logo" className="w-8 h-8 object-contain" />
+                    <video
+                      src="/pv-logo-loop.mp4"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-8 h-8 object-contain"
+                    />
                   </div>
                   <div>
                     <h3 className="text-sm font-extrabold text-white tracking-tight flex items-center gap-2">
@@ -665,7 +686,7 @@ export const Dashboard: React.FC = () => {
             >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Comparisons Run</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Comparison Runs</span>
                   <ArrowRightLeft className="h-4 w-4 text-sky-400" strokeWidth={2} />
                 </div>
                 <div className="mt-2 text-2xl font-black">{totalComparisons}</div>
@@ -760,7 +781,8 @@ export const Dashboard: React.FC = () => {
                     <span>Blueprints • Total: {filteredBlueprints.length}</span>
                   </div>
 
-                  {/* ⭐ Pinned Blueprints Collapsible Section */}
+                  {/* ⭐ Pinned Blueprints Collapsible Section — only shown when at least 1 blueprint is pinned */}
+                  {pinnedBlueprints.length > 0 && (
                   <div className="space-y-3 font-sans select-none">
                     <div 
                       className="flex items-center justify-between border-b border-border/40 pb-2 cursor-pointer group"
@@ -844,7 +866,7 @@ export const Dashboard: React.FC = () => {
                                       </div>
 
                                       {/* Title: Highest Visual Priority */}
-                                      <CardTitle className="text-[17px] font-black tracking-tight text-foreground group-hover:text-indigo-400 transition-colors leading-snug mt-2 mb-2">
+                                      <CardTitle className="text-[18px] font-black tracking-tight text-foreground/95 group-hover:text-indigo-400 transition-colors leading-snug mt-2 mb-2">
                                         {bp.name}
                                       </CardTitle>
 
@@ -947,7 +969,7 @@ export const Dashboard: React.FC = () => {
                                           <span className="text-[9.5px] font-mono text-muted-foreground/60 tracking-wider font-semibold uppercase">
                                             ID #{bp.id}
                                           </span>
-                                          <span className="text-[15px] font-black text-foreground group-hover:text-indigo-400 transition-colors">
+                                          <span className="text-[16px] font-black text-foreground/95 group-hover:text-indigo-400 transition-colors">
                                             {bp.name}
                                           </span>
                                           <Badge variant="outline" className="text-[8px] border-amber-500/40 text-amber-400 font-mono py-0 font-bold">
@@ -1019,6 +1041,7 @@ export const Dashboard: React.FC = () => {
                       )}
                     </AnimatePresence>
                   </div>
+                  )}
 
                   {/* 📁 Other Blueprints Section */}
                   <div className="space-y-3 pt-2 font-sans select-none">
@@ -1070,7 +1093,7 @@ export const Dashboard: React.FC = () => {
                                 </div>
 
                                 {/* Title: Highest Visual Priority */}
-                                <CardTitle className="text-[17px] font-black tracking-tight text-foreground group-hover:text-indigo-400 transition-colors leading-snug mt-2 mb-2">
+                                <CardTitle className="text-[18px] font-black tracking-tight text-foreground/95 group-hover:text-indigo-400 transition-colors leading-snug mt-2 mb-2">
                                   {bp.name}
                                 </CardTitle>
 
@@ -1173,7 +1196,7 @@ export const Dashboard: React.FC = () => {
                                     <span className="text-[9.5px] font-mono text-muted-foreground/60 tracking-wider font-semibold uppercase">
                                       ID #{bp.id}
                                     </span>
-                                    <span className="text-[15px] font-black text-foreground group-hover:text-indigo-400 transition-colors">
+                                    <span className="text-[16px] font-black text-foreground/95 group-hover:text-indigo-400 transition-colors">
                                       {bp.name}
                                     </span>
                                     {bp.forked_from && (

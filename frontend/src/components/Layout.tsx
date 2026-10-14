@@ -175,13 +175,16 @@ export const Layout: React.FC = () => {
       }`}>
         <div>
           {/* Logo Header with Toggle Button */}
-          <div className={`p-4 flex items-center border-b border-border/60 ${
-            isCollapsed ? "justify-center" : "justify-between"
+          <div className={`p-4 flex border-b border-border/60 transition-all ${
+            isCollapsed ? "flex-col items-center gap-4" : "flex-row items-center justify-between"
           }`}>
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <img
-                src="/pv-logo.png"
-                alt="PromptVault Logo"
+              <video
+                src="/pv-logo-loop.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
                 className="w-10 h-10 object-contain flex-shrink-0"
               />
               {!isCollapsed && (
@@ -323,9 +326,12 @@ export const Layout: React.FC = () => {
 
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <img
-                    src="/pv-logo.png"
-                    alt="PromptVault Logo"
+                  <video
+                    src="/pv-logo-loop.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
                     className="h-6 w-6 object-contain shrink-0"
                   />
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider truncate">Dev Vault</span>

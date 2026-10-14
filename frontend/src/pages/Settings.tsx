@@ -223,7 +223,14 @@ export const Settings: React.FC = () => {
             <CardHeader className="p-5 border-b border-border/50">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <img src="/pv-logo.png" alt="PV Logo" className="w-4 h-4 object-contain" />
+                  <video
+                    src="/pv-logo-loop.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-4 h-4 object-contain"
+                  />
                   Browser Extension
                 </CardTitle>
                 {isExtensionConnected ? (

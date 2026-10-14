@@ -463,7 +463,14 @@ export const BlueprintEditor: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] py-16 text-center select-none">
         <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-5 shadow-lg shadow-indigo-500/5">
-          <img src="/pv-logo.png" alt="PromptVault Logo" className="w-12 h-12 object-contain" />
+          <video
+            src="/pv-logo-loop.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-12 h-12 object-contain"
+          />
         </div>
         <h2 className="text-xl font-extrabold text-foreground tracking-tight">Authentication Required</h2>
         <p className="text-xs text-muted-foreground/80 mt-1.5 max-w-sm leading-relaxed">

@@ -3,7 +3,12 @@ from app.config.settings import settings
 import sys
 
 # We expect a PostgreSQL URL in production.
-engine = create_engine(settings.DATABASE_URL, echo=False)
+engine = create_engine(
+    settings.DATABASE_URL,
+    echo=False,
+    pool_pre_ping=True,
+    pool_recycle=300
+)
 
 try:
     with engine.connect() as conn:

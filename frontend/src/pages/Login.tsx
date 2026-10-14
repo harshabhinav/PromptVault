@@ -289,9 +289,12 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
 
             {/* Header Branding (Fixed Header) */}
-            <img
-              src="/pv-logo.png"
-              alt="PromptVault Logo"
+            <video
+              src="/pv-logo-loop.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
               className="w-20 h-20 mx-auto mb-5 object-contain"
             />
 
