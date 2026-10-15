@@ -1,6 +1,6 @@
 import re
 from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select, func, delete
 from app.database.connection import get_session
 from app.models.activity import Activity
@@ -21,6 +21,24 @@ def clear_activities(
     session.exec(delete(Activity).where(Activity.user_id == current_user.id))
     session.commit()
     return {"message": "All activity logs cleared successfully."}
+
+
+@router.delete("/activities/{activity_id}", status_code=status.HTTP_200_OK)
+def delete_activity(
+    activity_id: int,
+    session: Session = Depends(get_session),
+    current_user: AuthenticatedUser = Depends(get_current_user)
+):
+    """Deletes a single activity log entry (never the underlying blueprint/version/etc.)."""
+    activity = session.get(Activity, activity_id)
+    if not activity or activity.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Activity not found."
+        )
+    session.delete(activity)
+    session.commit()
+    return {"message": "Activity deleted successfully.", "id": activity_id}
 
 
 @router.get("/stats")

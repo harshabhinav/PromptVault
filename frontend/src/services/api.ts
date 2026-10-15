@@ -315,6 +315,9 @@ export const dashboardApi = {
   clearActivities: async (): Promise<void> => {
     await api.delete("/dashboard/activities");
   },
+  deleteActivity: async (id: number): Promise<void> => {
+    await api.delete(`/dashboard/activities/${id}`);
+  },
   clearRegression: async (id: number): Promise<void> => {
     await api.delete(`/dashboard/regressions/${id}`);
   },

@@ -325,6 +325,25 @@ export const Dashboard: React.FC = () => {
     }
   });
 
+  const [activityToDelete, setActivityToDelete] = useState<ActivityLog | null>(null);
+  const deleteActivityMutation = useMutation({
+    mutationFn: (id: number) => dashboardApi.deleteActivity(id),
+    onSuccess: (_data, id) => {
+      // Remove the row immediately, then re-sync with the server
+      queryClient.setQueryData<ActivityLog[]>(["dashboard-activities"], (old) =>
+        (old || []).filter((a) => a.id !== id)
+      );
+      queryClient.invalidateQueries({ queryKey: ["dashboard-activities"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      setActivityToDelete(null);
+      triggerToast("Activity deleted.");
+    },
+    onError: (err: any) => {
+      setActivityToDelete(null);
+      triggerToast(err?.response?.data?.detail || "Failed to delete activity.");
+    }
+  });
+
   const clearLogsMutation = useMutation({
     mutationFn: dashboardApi.clearActivities,
     onSuccess: () => {
@@ -1315,13 +1334,23 @@ export const Dashboard: React.FC = () => {
                       activities.map((act) => {
                         const { color, icon: Icon } = getActivityMeta(act.event_type);
                         return (
-                          <div key={act.id} className="p-4 hover:bg-secondary/5 transition-colors">
+                          <div key={act.id} className="group relative p-4 pr-11 hover:bg-secondary/5 transition-colors">
+                            <button
+                              type="button"
+                              onClick={() => setActivityToDelete(act)}
+                              disabled={deleteActivityMutation.isPending}
+                              aria-label={`Delete activity: ${act.event_type}`}
+                              title="Delete this activity"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-md bg-card/90 border border-border/50 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 transition-all duration-200 disabled:opacity-40"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
                             <div className="flex items-center justify-between mb-1.5">
                               <span className={`font-semibold ${color} flex items-center gap-1`}>
                                 <Icon className="h-3 w-3" />
                                 {act.event_type}
                               </span>
-                              <span className="text-muted-foreground text-[9px] font-mono">
+                              <span className="text-muted-foreground text-[9px] font-mono mt-1.5">
                                 {formatLocalTimestamp(act.created_at)}
                               </span>
                             </div>
@@ -1510,6 +1539,67 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <Button size="sm" onClick={() => setShowRegressionsModal(false)} className="bg-secondary text-foreground hover:bg-secondary/80">
                   Close Log
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Single Activity Confirmation Modal */}
+      <AnimatePresence>
+        {activityToDelete && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="absolute inset-0" onClick={() => !deleteActivityMutation.isPending && setActivityToDelete(null)} />
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="relative bg-card border border-border rounded-xl w-full max-w-md p-6 shadow-2xl z-55 flex flex-col space-y-4 font-sans select-none"
+            >
+              <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                  <Trash2 className="h-4 w-4 text-rose-500" />
+                  Delete Activity?
+                </h3>
+                <button
+                  onClick={() => setActivityToDelete(null)}
+                  disabled={deleteActivityMutation.isPending}
+                  className="text-muted-foreground hover:text-foreground disabled:opacity-50"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="space-y-2 text-xs text-muted-foreground leading-relaxed">
+                <p className="text-foreground font-medium">Remove this entry from Recent Platform Activity?</p>
+                <p className="bg-secondary/20 border border-border/50 p-2.5 rounded-lg text-[11px]">
+                  <span className="font-semibold text-foreground/90">{activityToDelete.event_type}</span> — {activityToDelete.description}
+                </p>
+                <p className="text-[11px]">Only this log entry is removed. Your blueprints, versions and comparisons are not affected.</p>
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-2 border-t border-border/50">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActivityToDelete(null)}
+                  disabled={deleteActivityMutation.isPending}
+                  className="h-8 text-xs gap-1.5 font-medium"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => {
+                    if (!deleteActivityMutation.isPending) deleteActivityMutation.mutate(activityToDelete.id);
+                  }}
+                  isLoading={deleteActivityMutation.isPending}
+                  disabled={deleteActivityMutation.isPending}
+                  className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white gap-1.5 font-semibold"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete
                 </Button>
               </div>
             </motion.div>
