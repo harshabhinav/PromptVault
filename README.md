@@ -1,89 +1,156 @@
-# PromptVault — Version, Compare, Improve AI Prompts
+#PromptVault — Version, Compare & Improve AI Prompts Anywhere
 
-PromptVault is a production-quality SaaS-style prompt ops platform designed to version control prompt blueprints, define test inputs variables, execute side-by-side prompt output comparisons concurrently, and analyze output latency/token variations using a Git-style prompt visualizer.
+Your AI prompt workspace. Save from any AI agent. Version, compare, and improve in one place.
 
-## Tech Stack
+PromptVault is a prompt management and evaluation platform that brings version control to AI prompts. Organize prompts into blueprints, maintain version histories, compare outputs, and evaluate changes—all from one centralized workspace.
 
-- **Frontend**: React, Vite, TypeScript, Tailwind CSS, TanStack Query, Axios, Framer Motion, Lucide Icons, Monaco Editor.
-- **Backend**: FastAPI, SQLModel, SQLite, Python-dotenv, Anthropic Python SDK, HTTPX.
+Save prompts from anywhere you use AI. With the PromptVault browser extension, capture useful prompts directly from supported AI agents such as ChatGPT, Claude, and Gemini without interrupting your workflow. Save prompts to existing blueprints or use Quick Save to store them instantly for later
 
----
 
-## Getting Started
+## ✨ Features
 
-### 1. Repository Layout
+- **Browser Extension:** Save prompts from supported AI websites and use Quick Save to store them in a dedicated blueprint.
+- **Blueprint Management:** Organize prompts, add descriptions, pin favorites, search, and fork existing blueprints.
+- **Version Control:** Save revisions as V1, V2, V3, and review previous versions with optional commit messages.
+- **Side-by-Side Comparison:** Compare prompt versions using consistent test inputs and inspect their outputs.
+- **Git-Style Diff:** Identify added and removed lines between prompt revisions.
+- **Testing & Evaluation:** Create test cases, evaluate prompts, and review available execution metrics.
+- **AI-Assisted Workflows:** Generate, improve, and evaluate prompts through configured AI providers.
+- **Dashboard & Activity:** Track versions, comparisons, evaluation scores, regression warnings, and recent activity.
+- **Authentication:** Backend-managed accounts, email verification, and user-specific data access.
 
-Ensure the workspace has the following structure:
+*AI features and browser integration depend on the configured providers, backend, and installed extension version.*
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React, Vite, TypeScript, Tailwind CSS |
+| Data Fetching | TanStack Query, Axios |
+| Backend | Python, FastAPI |
+| Database & ORM | PostgreSQL, SQLModel, SQLAlchemy |
+| Migrations | Alembic |
+| AI Integration | Anthropic SDK, where configured |
+| Authentication | Password hashing, JWT |
+| Browser Extension | Chrome Extension APIs |
+
+## 🏗️ Project Structure
+
+```text
+PromptVault/
+├── frontend/       # React application and dashboard
+├── backend/        # FastAPI, authentication and database
+└── extension/      # Browser-based prompt capture
 ```
-promptvault/
-├── backend/       # FastAPI project structure
-└── frontend/      # React client project structure
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python 3.11 or a compatible version
+- Node.js and npm
+- PostgreSQL
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/harshabhinav/PromptVault.git
+cd PromptVault
 ```
 
-### 2. Backend Setup
+### 2. Set up the backend
 
-1. Navigate to the backend folder:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a Python virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows (Powershell):
-   .\venv\Scripts\activate
-   ```
-3. Install all dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Create a `.env` configuration file inside `backend/`:
-   ```env
-   DATABASE_URL=sqlite:///./promptvault.db
-   PORT=8000
-   HOST=127.0.0.1
-   # Optional: Add your actual Anthropic API Key to trigger live Claude runs
-   # ANTHROPIC_API_KEY=your-api-key-here
-   ```
-   > [!NOTE]
-   > If no `ANTHROPIC_API_KEY` is supplied, the system automatically defaults to **Sandbox Mode**, simulating prompt completions and behavioral summaries locally.
+```bash
+cd backend
+python -m venv venv
+```
 
-5. Start the backend uvicorn dev server:
-   ```bash
-   python -m uvicorn app.main:app --port 8000 --reload
-   ```
-   *The SQLite database is initialized and seeded with mock blueprints, version nodes, and test inputs automatically on first run.*
+Activate the virtual environment, then install dependencies:
+
+```bash
+# Windows PowerShell
+.\venv\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+```
+
+Create a `backend/.env` file using the environment variable names supported by the project. For example:
+
+```env
+DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE
+JWT_SECRET=your-secure-secret
+FRONTEND_URL=http://localhost:3000
+```
+
+Add AI provider and email configuration if required by your setup. Never commit secrets or `.env` files.
+
+### 3. Apply database migrations
+
+From the directory containing `alembic.ini`:
+
+```bash
+alembic upgrade head
+```
+
+Ensure PostgreSQL is running and `DATABASE_URL` points to the correct database.
+
+### 4. Start the backend
+
+From `backend/`:
+
+```bash
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+API documentation: `http://127.0.0.1:8000/docs`
+
+### 5. Start the frontend
+
+Open a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the local URL displayed by Vite. If configured for port 3000, visit `http://localhost:3000`.
+
+## 🧪 Testing
+
+Run the available backend tests:
+
+```bash
+pytest
+```
+
+Build the frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+For complete validation, test database migrations, authentication, version saving, prompt comparisons, user data isolation, and browser extension saving.
+
+## 🗺️ Roadmap
+
+- Additional AI provider integrations
+- Advanced evaluation and regression analysis
+- Prompt export and import
+- Team workspaces and collaboration
+
+## 🤝 Contributing
+
+Contributions, bug reports, and feature suggestions are welcome. Fork the repository, create a feature branch, test your changes, and submit a pull request.
+
+## 👨‍💻 Author
+
+**Harsh Abhinav**
+
+- GitHub: [@harshabhinav](https://github.com/harshabhinav)
+- Repository: [PromptVault](https://github.com/harshabhinav/PromptVault)
 
 ---
 
-### 3. Frontend Setup
-
-1. Navigate to the frontend folder:
-   ```bash
-   cd ../frontend
-   ```
-2. Install the required Node packages:
-   ```bash
-   npm install
-   ```
-3. Start the Vite client dev server:
-   ```bash
-   npm run dev
-   ```
-4. Open the application in your browser:
-   [http://localhost:3000](http://localhost:3000)
-
----
-
-## Comparative Engine Operations (Under-the-Hood)
-
-- **Concurrency**: Triggering `/api/compare` fires concurrent completion generations for all registered test inputs against both prompts using python `asyncio.gather()`.
-- **Database Tracking**: All completions outputs, token counts, and latencies are recorded as `TestRun` records linked to their parent versions and inputs.
-- **Behavioral Summary**: A final summary request compares version parameters and output sets, returning a 1-2 sentence overview of the structural differences.
-- **Git-Style Diff**: Shows modifications, line additions (`+` in green), and line deletions (`-` in red) side-by-side inside the comparison visualizer.
-
----
-
-## Keyboard Shortcuts
-
-- **Ctrl/Cmd + S**: Save/Commit Version Node (Editor page)
-- **Ctrl/Cmd + Enter**: Run Prompt Comparison (Compare page)
+**PromptVault — Save anywhere. Version every change. Compare with confidence.**
