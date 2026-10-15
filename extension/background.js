@@ -215,7 +215,9 @@ async function savePromptVersion(payload) {
   }
 
   if (status === 401) {
-    return { success: false, error: "Please sign in to PromptVault." };
+    // Expired or invalid token: clear it so the UI prompts for a fresh sign-in
+    await handleSetToken(null);
+    return { success: false, error: "Session expired. Please sign in to PromptVault." };
   }
 
   console.error("[PromptVault] Save failed:", data.detail);

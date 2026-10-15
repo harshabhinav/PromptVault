@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from sqlmodel import SQLModel, Field
+from app.utils.datetime import utc_now
 
 class Activity(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -9,4 +10,4 @@ class Activity(SQLModel, table=True):
     blueprint_id: Optional[int] = Field(default=None, nullable=True)
     version_id: Optional[int] = Field(default=None, nullable=True)
     description: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)

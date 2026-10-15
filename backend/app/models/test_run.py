@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
+from app.utils.datetime import utc_now
 
 if TYPE_CHECKING:
     from app.models.version import Version
@@ -15,7 +16,7 @@ class TestRun(SQLModel, table=True):
     latency: float  # in seconds
     token_usage: int
     estimated_cost: float = Field(default=0.0)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
     # Added columns for evaluation storage
     test_case_name: Optional[str] = Field(default=None)

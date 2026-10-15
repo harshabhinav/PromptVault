@@ -1,7 +1,7 @@
-from datetime import datetime
 from typing import Optional
 from sqlmodel import Session
 from app.models.activity import Activity
+from app.utils.datetime import utc_now
 
 class ActivityService:
     @staticmethod
@@ -19,7 +19,7 @@ class ActivityService:
             blueprint_id=blueprint_id,
             version_id=version_id,
             user_id=user_id,
-            created_at=datetime.utcnow()
+            created_at=utc_now()
         )
         session.add(activity)
         session.commit()

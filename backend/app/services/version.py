@@ -1,13 +1,32 @@
 from typing import List
 from fastapi import HTTPException, status
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, select, func
 from app.models.version import Version
 from app.models.blueprint import Blueprint
+from app.models.activity import Activity
 from app.schemas.version import VersionCreate
+from app.utils.datetime import utc_now
 
 class VersionService:
     @staticmethod
+    def acquire_save_lock(session: Session, user_id: str) -> None:
+        """
+        Serializes save operations per user for the current transaction (released on
+        commit/rollback) so concurrent saves can't compute the same version number or
+        create duplicate 'Quick Save' blueprints.
+        """
+        if session.get_bind().dialect.name == "postgresql":
+            session.execute(
+                text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+                {"key": f"promptvault-save:{user_id}"},
+            )
+
+    @staticmethod
     def create(session: Session, data: VersionCreate, user_id: str) -> Version:
+        VersionService.acquire_save_lock(session, user_id)
+
         # Verify parent blueprint exists and belongs to user
         blueprint = session.get(Blueprint, data.blueprint_id)
         if not blueprint or blueprint.user_id != user_id:
@@ -26,11 +45,7 @@ class VersionService:
         version_dict["user_id"] = user_id
         version_dict["version_number"] = next_num
         version = Version.model_validate(version_dict)
-        session.add(version)
-        session.commit()
-        session.refresh(version)
 
-        from app.services.activity import ActivityService
         import json
         commit_memo = ""
         try:
@@ -40,14 +55,27 @@ class VersionService:
         except Exception:
             pass
 
-        ActivityService.log_activity(
-            session=session,
-            event_type="Version Saved",
-            description=f"Saved V{version.version_number}{commit_memo} for blueprint '{blueprint.name}'",
-            blueprint_id=blueprint.id,
-            version_id=version.id,
-            user_id=user_id
-        )
+        try:
+            session.add(version)
+            session.flush()  # Allocates version.id
+
+            # Version and its activity entry are committed atomically.
+            session.add(Activity(
+                event_type="Version Saved",
+                description=f"Saved V{next_num}{commit_memo} for blueprint '{blueprint.name}'",
+                blueprint_id=blueprint.id,
+                version_id=version.id,
+                user_id=user_id,
+                created_at=utc_now()
+            ))
+            session.commit()
+        except SQLAlchemyError:
+            session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not save the version due to a database error. Nothing was saved; please try again."
+            )
+        session.refresh(version)
         return version
 
     @staticmethod

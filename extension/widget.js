@@ -508,6 +508,8 @@ class PromptVaultWidget {
       return;
     }
 
+    if (this._saving) return; // Prevent duplicate submissions while a save is in flight
+    this._saving = true;
     console.log("[PromptVault] Creating version");
     this.setButtonLoading("pv-save-btn", true);
 
@@ -520,11 +522,12 @@ class PromptVaultWidget {
         source_url: this.currentPrompt.url
       }
     }, (res) => {
+      this._saving = false;
       this.setButtonLoading("pv-save-btn", false);
 
       if (chrome.runtime.lastError || !res || !res.success) {
         console.error("[PromptVault] Save failed:", chrome.runtime.lastError || res?.error);
-        this.showToastError("Save Failed", "Please try again");
+        this.showToastError("Save Failed", res?.error || "Please try again");
         return;
       }
 
@@ -551,6 +554,8 @@ class PromptVaultWidget {
       return;
     }
 
+    if (this._saving) return;
+    this._saving = true;
     console.log("[PromptVault] Quick saving to 'Quick Save' blueprint...");
     this.setButtonLoading("pv-quick-save-btn", true);
 
@@ -563,6 +568,7 @@ class PromptVaultWidget {
         source_url: this.currentPrompt ? this.currentPrompt.url : ""
       }
     }, (res) => {
+      this._saving = false;
       this.setButtonLoading("pv-quick-save-btn", false);
 
       if (chrome.runtime.lastError || !res || !res.success) {

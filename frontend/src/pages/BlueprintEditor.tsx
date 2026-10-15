@@ -163,6 +163,9 @@ export const BlueprintEditor: React.FC = () => {
     mutationFn: versionApi.create,
     onSuccess: (newVer) => {
       queryClient.invalidateQueries({ queryKey: ["versions", blueprintId] });
+      queryClient.invalidateQueries({ queryKey: ["blueprints"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-activities"] });
       setSelectedVersion(newVer);
       setShowCommitDrawer(false);
       setCommitMsg("");
@@ -325,6 +328,7 @@ export const BlueprintEditor: React.FC = () => {
   };
 
   const handleCommit = () => {
+    if (commitVersionMutation.isPending) return; // Ignore repeated clicks while a save is in flight
     const params: Record<string, unknown> = {
       model: modelName,
       temperature: temperature,

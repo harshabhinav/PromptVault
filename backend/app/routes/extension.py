@@ -1,13 +1,15 @@
 import json
-from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, select, func
 from app.database.connection import get_session
 from app.models.blueprint import Blueprint
 from app.models.version import Version
 from app.models.activity import Activity
+from app.services.version import VersionService
+from app.utils.datetime import utc_now
 from app.auth.security import get_current_user, AuthenticatedUser
 
 router = APIRouter(prefix="/extension", tags=["Extension"])
@@ -54,6 +56,10 @@ def quick_save_prompt(
             detail="Prompt text cannot be empty."
         )
 
+    # Serialize this user's saves so version numbers and the 'Quick Save'
+    # blueprint can't be duplicated by concurrent requests.
+    VersionService.acquire_save_lock(session, user_id)
+
     blueprint = None
     is_new_blueprint = False
 
@@ -91,7 +97,7 @@ def quick_save_prompt(
                 description=f"Created blueprint '{blueprint.name}' from {data.source_site}",
                 blueprint_id=blueprint.id,
                 user_id=user_id,
-                created_at=datetime.utcnow()
+                created_at=utc_now()
             )
             session.add(activity_bp)
 
@@ -122,7 +128,7 @@ def quick_save_prompt(
         system_prompt=existing_system_prompt,
         user_prompt=prompt_text,
         parameters_json=params,
-        created_at=datetime.utcnow()
+        created_at=utc_now()
     )
     session.add(version)
     session.flush()  # Allocates version.id
@@ -133,12 +139,19 @@ def quick_save_prompt(
         blueprint_id=blueprint.id,
         version_id=version.id,
         user_id=user_id,
-        created_at=datetime.utcnow()
+        created_at=utc_now()
     )
     session.add(activity_ver)
 
     # ── 7. Single Atomic Commit ─────────────────────────────────────────────
-    session.commit()
+    try:
+        session.commit()
+    except SQLAlchemyError:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not save the prompt due to a database error. Nothing was saved; please try again."
+        )
     session.refresh(version)
 
     return QuickSaveResponse(

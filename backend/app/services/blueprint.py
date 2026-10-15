@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlmodel import Session, select, func
+from app.utils.datetime import utc_now
 from app.models.blueprint import Blueprint
 from app.models.version import Version
 from app.models.test_case import TestCase
@@ -173,7 +174,7 @@ class BlueprintService:
         
         blueprint.is_pinned = not blueprint.is_pinned
         if blueprint.is_pinned:
-            blueprint.pinned_at = datetime.utcnow()
+            blueprint.pinned_at = utc_now()
         else:
             blueprint.pinned_at = None
 

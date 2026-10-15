@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
+from app.utils.datetime import utc_now
 
 if TYPE_CHECKING:
     from app.models.blueprint import Blueprint
@@ -14,7 +15,7 @@ class Version(SQLModel, table=True):
     system_prompt: str = Field(default="")
     user_prompt: Optional[str] = Field(default=None)  # Extended for template compatibility
     parameters_json: Optional[str] = Field(default="{}")  # Extended for temperature/max_tokens compatibility
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
     # Relationships
     blueprint: "Blueprint" = Relationship(back_populates="versions")
