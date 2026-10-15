@@ -1,11 +1,8 @@
-#PromptVault — Version, Compare & Improve AI Prompts Anywhere
+# PromptVault — Save, Version & Compare AI Prompts Anywhere
 
-Your AI prompt workspace. Save from any AI agent. Version, compare, and improve in one place.
+**Capture prompts from your AI agents. Organize, version, and improve them in one workspace.**
 
-PromptVault is a prompt management and evaluation platform that brings version control to AI prompts. Organize prompts into blueprints, maintain version histories, compare outputs, and evaluate changes—all from one centralized workspace.
-
-Save prompts from anywhere you use AI. With the PromptVault browser extension, capture useful prompts directly from supported AI agents such as ChatGPT, Claude, and Gemini without interrupting your workflow. Save prompts to existing blueprints or use Quick Save to store them instantly for later
-
+PromptVault is a prompt management platform that brings version control to AI prompts. Create reusable prompt blueprints, track revisions, compare outputs, inspect Git-style diffs, and save prompts directly from supported AI websites using the PromptVault browser extension.
 
 ## ✨ Features
 
