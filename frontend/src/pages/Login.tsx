@@ -845,6 +845,52 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
         </div>
       </div>
 
+      {/* Demo Video Section */}
+      <div id="demo" className="border-t border-border/40 py-24 md:py-32 bg-black/40 backdrop-blur-md px-4 sm:px-6 lg:px-8 z-10 relative overflow-hidden scroll-mt-12">
+        {/* Ambient Glows */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] max-w-full h-[360px] bg-gradient-to-tr from-purple-600/15 via-indigo-500/15 to-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto space-y-12 relative z-10">
+          {/* Section Header */}
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold tracking-wide shadow-sm">
+              <img src="/pv-logo.png" alt="" className="h-4 w-4 object-contain" />
+              <span>PRODUCT DEMO</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground">
+              See PromptVault <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400">in Action</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed font-normal">
+              Discover how PromptVault helps you save, organize, version, compare, and improve AI prompts&mdash;all in one workspace.
+            </p>
+          </div>
+
+          {/* Video Player with Gradient Border & Glow */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="max-w-5xl mx-auto relative"
+          >
+            <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-600/40 via-purple-500/40 to-indigo-600/40 blur-xl opacity-60 pointer-events-none" />
+            <div className="relative rounded-2xl p-[1.5px] bg-gradient-to-br from-indigo-500/70 via-purple-500/40 to-indigo-500/70 shadow-2xl shadow-indigo-500/20">
+              <div className="rounded-[14px] overflow-hidden bg-black aspect-video">
+                <video
+                  src="/PromptVault_Demo_v2_1080p.mp4#t=0.1"
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-contain bg-black"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
       {/* Redesigned Premium Final CTA Section */}
       <div className="border-t border-border/40 py-32 md:py-40 px-4 sm:px-6 lg:px-8 bg-black/60 relative overflow-hidden z-10">
         {/* Ambient Purple/Indigo Radial Glow behind CTA */}
