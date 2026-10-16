@@ -224,12 +224,6 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="flex flex-col items-start justify-center space-y-6 text-left lg:pr-8"
         >
-          {/* AI Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold tracking-wide shadow-sm">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>AI PROMPT MANAGEMENT PLATFORM</span>
-          </div>
-
           {/* Headline Container with Centered Behind Glow */}
           <div className="relative w-full">
             {/* Centered Ambient Glow behind heading */}
