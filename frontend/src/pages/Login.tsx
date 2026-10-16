@@ -11,7 +11,8 @@ const heroSubtitles = [
   "Version Control for AI Prompts.",
   "AI Workflow Management.",
   "Prompt Testing & Optimization.",
-  "Your AI Prompt Workspace."
+  "Your AI Prompt Workspace.",
+  "Save AI Prompts From Anywhere."
 ];
 
 export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initialMode = "signin" }) => {
