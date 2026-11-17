@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Key, Database, ShieldAlert, Eye, EyeOff, Save, Download, Trash2, CheckCircle2, AlertCircle, RefreshCw
 } from "lucide-react";
@@ -188,12 +188,19 @@ export const Settings: React.FC = () => {
       transition={{ duration: 0.4 }}
       className="space-y-6 max-w-4xl relative"
     >
-      {toastMsg && (
-        <div className="fixed top-6 right-6 z-50 bg-neutral-900 border border-neutral-800 text-white px-4 py-2.5 rounded-lg shadow-xl text-xs flex items-center gap-2">
-          <Key className="h-4 w-4 text-indigo-400" />
-          {toastMsg}
-        </div>
-      )}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-6 right-6 z-50 bg-neutral-900 border border-neutral-800 text-white px-4 py-2.5 rounded-lg shadow-xl text-xs flex items-center gap-2"
+          >
+            <Key className="h-4 w-4 text-indigo-400" />
+            {toastMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div>
         <h1 className="text-xl font-bold tracking-tight">Vault Settings</h1>

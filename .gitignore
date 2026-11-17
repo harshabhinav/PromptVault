@@ -31,6 +31,9 @@ htmlcov/
 *.db
 promptvault.db
 
+# Built extension ZIPs (attach to a GitHub Release instead)
+release/
+
 # OS Files
 .DS_Store
 Thumbs.db

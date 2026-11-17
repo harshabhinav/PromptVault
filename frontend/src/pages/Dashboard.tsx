@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Plus, Search, Tag, ArrowRight, Clock, ShieldCheck, 
-  MessageSquareCode, Zap, Layers, Sparkles, Filter, Trash2, X, Grid, List, AlertTriangle, ArrowRightLeft, Pin, FlaskConical, ChevronDown, ChevronRight, Loader2, GitCommit
+  MessageSquareCode, Zap, Layers, Sparkles, Filter, Trash2, X, Grid, List, AlertTriangle, ArrowRightLeft, Pin, FlaskConical, ChevronDown, ChevronRight, Loader2, GitCommit, CheckCircle2, Star, Folder
 } from "lucide-react";
 import { blueprintApi, dashboardApi, compareApi, Blueprint, DashboardStats, ActivityLog, RegressionDetail, ComparisonHistoryItem } from "../services/api";
 import { formatLocalTimestamp, formatRelativeOrLocalTimestamp } from "../utils/date";
@@ -14,7 +14,8 @@ import { Badge } from "../components/ui/Badge";
 import { Input, Label, Textarea } from "../components/ui/Input";
 import { DeleteBlueprintModal } from "../components/DeleteBlueprintModal";
 import { useAuth } from "../context/AuthContext";
-import { PROMPTVAULT_EXTENSION_STORE_URL } from "../config";
+import { CountUp } from "../components/motion/CountUp";
+import { PROMPTVAULT_EXTENSION_DOWNLOAD_URL, PROMPTVAULT_EXTENSION_RELEASES_URL } from "../config";
 
 const getActivityMeta = (eventType: string) => {
   const t = (eventType || "").toLowerCase();
@@ -140,8 +141,10 @@ export const Dashboard: React.FC = () => {
     } catch {}
   };
 
+  const [showExtensionInstallModal, setShowExtensionInstallModal] = useState(false);
+
   const handleDownloadExtension = () => {
-    window.open(PROMPTVAULT_EXTENSION_STORE_URL, "_blank");
+    setShowExtensionInstallModal(true);
   };
 
   // Regressions Modal State
@@ -655,19 +658,19 @@ export const Dashboard: React.FC = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-20 bg-secondary/10 rounded-xl border border-border/40 animate-pulse" />
+              <div key={i} className="h-20 bg-secondary/10 rounded-xl border border-border/40 animate-pulse pv-shimmer" />
             ))}
           </div>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-4">
-              <div className="h-10 bg-secondary/10 rounded-lg animate-pulse" />
+              <div className="h-10 bg-secondary/10 rounded-lg animate-pulse pv-shimmer" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-36 bg-secondary/10 rounded-xl border border-border/40 animate-pulse" />
+                  <div key={i} className="h-36 bg-secondary/10 rounded-xl border border-border/40 animate-pulse pv-shimmer" />
                 ))}
               </div>
             </div>
-            <div className="h-96 bg-secondary/10 rounded-xl border border-border/40 animate-pulse" />
+            <div className="h-96 bg-secondary/10 rounded-xl border border-border/40 animate-pulse pv-shimmer" />
           </div>
         </div>
       ) : isError ? (
@@ -677,28 +680,28 @@ export const Dashboard: React.FC = () => {
       ) : (
         <>
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 select-none">
-            <Card className="glass-card hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-md hover:shadow-indigo-500/5 transition-all duration-200 cursor-pointer">
+          <div className="pv-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 select-none">
+            <Card data-tilt="2" className="glass-card hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-md hover:shadow-indigo-500/5 transition-all duration-200 cursor-pointer">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] font-bold uppercase tracking-wider">Blueprints</span>
                   <MessageSquareCode className="h-4 w-4 text-indigo-400" strokeWidth={2} />
                 </div>
-                <div className="mt-2 text-2xl font-black">{totalBlueprints}</div>
+                <div className="mt-2 text-2xl font-black"><CountUp value={totalBlueprints} /></div>
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-md hover:shadow-indigo-500/5 transition-all duration-200 cursor-pointer">
+            <Card data-tilt="2" className="glass-card hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-md hover:shadow-indigo-500/5 transition-all duration-200 cursor-pointer">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] font-bold uppercase tracking-wider">Version Nodes</span>
                   <Layers className="h-4 w-4 text-purple-400" strokeWidth={2} />
                 </div>
-                <div className="mt-2 text-2xl font-black">{totalVersions}</div>
+                <div className="mt-2 text-2xl font-black"><CountUp value={totalVersions} /></div>
               </CardContent>
             </Card>
 
-            <Card 
+            <Card data-tilt="2" 
               className="glass-card hover:-translate-y-0.5 hover:border-sky-500/40 hover:shadow-md hover:shadow-sky-500/5 transition-all duration-200 cursor-pointer"
               onClick={() => setShowCompHistoryModal(true)}
               title="Click to view comparison history"
@@ -708,11 +711,11 @@ export const Dashboard: React.FC = () => {
                   <span className="text-[10px] font-bold uppercase tracking-wider">Comparison Runs</span>
                   <ArrowRightLeft className="h-4 w-4 text-sky-400" strokeWidth={2} />
                 </div>
-                <div className="mt-2 text-2xl font-black">{totalComparisons}</div>
+                <div className="mt-2 text-2xl font-black"><CountUp value={totalComparisons} /></div>
               </CardContent>
             </Card>
 
-            <Card 
+            <Card data-tilt="2" 
               className="glass-card cursor-pointer hover:-translate-y-0.5 hover:border-rose-500/40 hover:shadow-md hover:shadow-rose-500/5 transition-all duration-200" 
               onClick={() => setShowRegressionsModal(true)}
               title="Click to view regression details"
@@ -724,15 +727,15 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="mt-2 text-sm font-bold flex items-center gap-1.5 text-rose-450 leading-relaxed min-h-[32px]">
                   {regressionWarnings === 0 ? (
-                    <span className="text-emerald-400 font-sans">✅ No regressions</span>
+                    <span className="text-emerald-400 font-sans inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 shrink-0" />No regressions</span>
                   ) : (
-                    <span className="text-rose-450 font-sans">⚠ {regressionWarnings} warning{regressionWarnings > 1 ? "s" : ""}</span>
+                    <span className="text-rose-450 font-sans inline-flex items-center gap-1.5"><AlertTriangle className="h-4 w-4 shrink-0" />{regressionWarnings} warning{regressionWarnings > 1 ? "s" : ""}</span>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-md hover:shadow-indigo-500/5 transition-all duration-200 cursor-pointer">
+            <Card data-tilt="2" className="glass-card hover:-translate-y-0.5 hover:border-indigo-500/30 hover:shadow-md hover:shadow-indigo-500/5 transition-all duration-200 cursor-pointer">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[10px] font-bold uppercase tracking-wider">Avg AI Score</span>
@@ -809,7 +812,7 @@ export const Dashboard: React.FC = () => {
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                          ⭐ Pinned Blueprints
+                          <Star className="h-3.5 w-3.5" />Pinned Blueprints
                         </span>
                         <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-400 font-mono py-0 font-bold">
                           {pinnedBlueprints.length}
@@ -848,10 +851,11 @@ export const Dashboard: React.FC = () => {
                         >
                           {pinnedBlueprints.length > 0 ? (
                             isGridView ? (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="pv-stagger grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {pinnedBlueprints.map(bp => (
                                   <Card 
                                     key={bp.id} 
+                                    data-tilt="4"
                                     className="glass-card hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/10 cursor-pointer flex flex-col justify-between group transition-all duration-200 border-amber-500/40 bg-amber-500/5 ring-1 ring-amber-500/20"
                                     onClick={() => navigate(`/editor?id=${bp.id}`)}
                                   >
@@ -918,11 +922,11 @@ export const Dashboard: React.FC = () => {
                                           </span>
                                           {bp.average_ai_score != null ? (
                                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                              🟢 {bp.average_ai_score}/100
+                                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />{bp.average_ai_score}/100
                                             </span>
                                           ) : (
                                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                              🟡 Not Evaluated
+                                              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Not Evaluated
                                             </span>
                                           )}
                                         </div>
@@ -1016,11 +1020,11 @@ export const Dashboard: React.FC = () => {
                                         <span title="Average AI Score" className="flex items-center gap-1">
                                           {bp.average_ai_score != null ? (
                                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                              🟢 {bp.average_ai_score}/100
+                                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />{bp.average_ai_score}/100
                                             </span>
                                           ) : (
                                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8.5px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                              🟡 Not Evaluated
+                                              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Not Evaluated
                                             </span>
                                           )}
                                         </span>
@@ -1066,7 +1070,7 @@ export const Dashboard: React.FC = () => {
                   <div className="space-y-3 pt-2 font-sans select-none">
                     <div className="flex items-center justify-between border-b border-border/40 pb-2">
                       <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                        📁 Other Blueprints
+                        <Folder className="h-3.5 w-3.5" />Other Blueprints
                       </span>
                       <Badge variant="outline" className="text-[9px] border-border text-muted-foreground font-mono py-0 font-bold">
                         {unpinnedBlueprints.length}
@@ -1075,10 +1079,11 @@ export const Dashboard: React.FC = () => {
 
                     {unpinnedBlueprints.length > 0 ? (
                       isGridView ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="pv-stagger grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {unpinnedBlueprints.map(bp => (
                             <Card 
                               key={bp.id} 
+                              data-tilt="4"
                               className="glass-card hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/10 hover:border-indigo-500/40 cursor-pointer flex flex-col justify-between group transition-all duration-200"
                               onClick={() => navigate(`/editor?id=${bp.id}`)}
                             >
@@ -1145,11 +1150,11 @@ export const Dashboard: React.FC = () => {
                                     </span>
                                     {bp.average_ai_score != null ? (
                                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        🟢 {bp.average_ai_score}/100
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />{bp.average_ai_score}/100
                                       </span>
                                     ) : (
                                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                        🟡 Not Evaluated
+                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Not Evaluated
                                       </span>
                                     )}
                                   </div>
@@ -1240,11 +1245,11 @@ export const Dashboard: React.FC = () => {
                                   <span title="Average AI Score" className="flex items-center gap-1">
                                     {bp.average_ai_score != null ? (
                                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                        🟢 {bp.average_ai_score}/100
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />{bp.average_ai_score}/100
                                       </span>
                                     ) : (
                                       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8.5px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                        🟡 Not Evaluated
+                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />Not Evaluated
                                       </span>
                                     )}
                                   </span>
@@ -1319,7 +1324,7 @@ export const Dashboard: React.FC = () => {
                     title="Clear all activity logs"
                   >
                     <Trash2 className="h-3 w-3" />
-                    🗑 Clear Activity Logs
+                    Clear Activity Logs
                   </Button>
                 </CardHeader>
                 <CardContent className="p-0 text-[11px]">
@@ -1540,6 +1545,76 @@ export const Dashboard: React.FC = () => {
                 <Button size="sm" onClick={() => setShowRegressionsModal(false)} className="bg-secondary text-foreground hover:bg-secondary/80">
                   Close Log
                 </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Extension Install Instructions Modal */}
+      <AnimatePresence>
+        {showExtensionInstallModal && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+            <div className="absolute inset-0" onClick={() => setShowExtensionInstallModal(false)} />
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="relative bg-card border border-purple-500/30 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-2xl shadow-purple-950/30 z-55 flex flex-col space-y-4 font-sans select-none"
+            >
+              <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-gradient flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-indigo-500" />
+                  Install the PromptVault Extension
+                </h3>
+                <button
+                  onClick={() => setShowExtensionInstallModal(false)}
+                  aria-label="Close"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <ol className="space-y-2.5 text-xs text-muted-foreground leading-relaxed list-none">
+                {[
+                  <>Download the extension ZIP using the button below.</>,
+                  <>Extract (unzip) it to a folder you'll keep, for example <span className="font-mono text-foreground/90">Documents/PromptVault-Extension</span>.</>,
+                  <>Open <span className="font-mono text-foreground/90">chrome://extensions</span> in Google Chrome.</>,
+                  <>Turn on <span className="font-semibold text-foreground/90">Developer mode</span> (top-right toggle).</>,
+                  <>Click <span className="font-semibold text-foreground/90">Load unpacked</span> and select the extracted folder (the one containing <span className="font-mono text-foreground/90">manifest.json</span>).</>,
+                  <>Open PromptVault, sign in, then open ChatGPT, Claude or Gemini and save a prompt to test it.</>,
+                ].map((step, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="shrink-0 h-5 w-5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] font-bold flex items-center justify-center mt-0.5">
+                      {i + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+
+              <p className="text-[11px] text-muted-foreground/80 bg-secondary/20 border border-border/50 rounded-lg p-2.5">
+                Keep the extracted folder in place &mdash; Chrome loads the extension from it. To update, download the new ZIP, replace the folder's contents, then click the reload icon on the extension card.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2 border-t border-border/50">
+                <a
+                  href={PROMPTVAULT_EXTENSION_RELEASES_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-9 px-4 inline-flex items-center justify-center text-xs font-medium rounded-xl border border-border/80 text-muted-foreground hover:text-foreground hover:border-indigo-500/40 transition-colors"
+                >
+                  Release notes
+                </a>
+                <a
+                  href={PROMPTVAULT_EXTENSION_DOWNLOAD_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-9 px-4 inline-flex items-center justify-center text-xs font-bold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/30 hover:shadow-purple-600/50 transition-all duration-200"
+                >
+                  Download PromptVault Extension (.zip)
+                </a>
               </div>
             </motion.div>
           </div>

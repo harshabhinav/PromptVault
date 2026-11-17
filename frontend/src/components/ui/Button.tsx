@@ -13,13 +13,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        data-magnetic={variant === "primary" ? "" : undefined}
         disabled={disabled || isLoading}
         className={twMerge(
           clsx(
             "inline-flex items-center justify-center font-bold tracking-wide transition-all duration-200 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] cursor-pointer select-none",
             // Variants matching Landing Page Design System
             {
-              "bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:brightness-110 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.01]": variant === "primary",
+              "pv-sheen bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:brightness-110 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.01]": variant === "primary",
               "bg-card/40 backdrop-blur-xl border border-border/70 hover:border-indigo-500/40 text-foreground hover:bg-secondary/40 shadow-sm": variant === "secondary",
               "border border-border/70 bg-secondary/20 hover:bg-secondary/60 hover:border-border text-foreground shadow-sm": variant === "outline",
               "bg-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/30": variant === "ghost",

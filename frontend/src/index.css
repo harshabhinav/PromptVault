@@ -27,25 +27,26 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;      /* #09090B */
-    --foreground: 0 0% 98%;          /* #FAFAFA */
-    --card: 240 5.8% 10.2%;          /* #18181B */
-    --card-foreground: 0 0% 98%;     /* #FAFAFA */
-    --popover: 240 5.8% 10.2%;       /* #18181B */
-    --popover-foreground: 0 0% 98%;  /* #FAFAFA */
-    --primary: 239 84% 66%;          /* #6366F1 (Indigo) */
-    --primary-foreground: 0 0% 98%;  /* #FAFAFA */
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 65%;  /* #A1A1AA */
-    --accent: 162 84% 39%;           /* #10B981 (Emerald) */
+    /* Obsidian / Aurora palette */
+    --background: 240 20% 3.9%;          /* #08080C */
+    --foreground: 250 100% 97.6%;        /* #F5F3FF */
+    --card: 250 23% 10.2%;               /* rgb(22,20,32) */
+    --card-foreground: 250 100% 97.6%;
+    --popover: 250 23% 10.2%;
+    --popover-foreground: 250 100% 97.6%;
+    --primary: 251 100% 67%;             /* #7657FF */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 248 18% 13%;
+    --secondary-foreground: 250 100% 97.6%;
+    --muted: 248 18% 13%;
+    --muted-foreground: 250 9% 61%;      /* #9693A5 */
+    --accent: 162 84% 39%;               /* #10B981 (success) */
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 17%;
-    --input: 240 3.7% 17%;
-    --ring: 240 4.9% 83.9%;
+    --border: 250 12% 15%;               /* ≈ white/8% over the obsidian base */
+    --input: 250 12% 15%;
+    --ring: 251 100% 67%;
   }
 }
 
@@ -64,7 +65,7 @@
 }
 
 .glass-card {
-  @apply bg-card/40 dark:bg-card/20 backdrop-blur-lg border border-border/80 shadow-sm transition-all duration-300 hover:shadow-md hover:border-border;
+  @apply bg-card/40 dark:bg-card/55 backdrop-blur-lg dark:backdrop-blur-xl dark:backdrop-saturate-150 border border-border/80 dark:border-white/[0.08] shadow-sm dark:shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-300 hover:shadow-md hover:border-border dark:hover:border-indigo-400/25;
 }
 
 .text-gradient {
@@ -104,4 +105,275 @@
 
 ::-webkit-scrollbar-thumb {
   @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/35;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Motion layer — premium micro-interactions & depth (visual only)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Pointer-driven 3D tilt. Cards opt in with `data-tilt="<lift px>"`; the
+   PointerTilt controller adds .pv-tilt-active and the --pv-* variables while a
+   fine pointer hovers. Without it (touch, reduced motion) cards keep their
+   original hover styles. */
+[data-tilt].pv-tilt-active {
+  transform: perspective(900px) translateY(var(--pv-lift, -4px)) rotateX(var(--pv-rx, 0deg)) rotateY(var(--pv-ry, 0deg)) !important;
+  transition: transform 0.18s ease-out, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease !important;
+  will-change: transform;
+}
+/* Soft light that follows the cursor across a tilted card */
+[data-tilt].pv-tilt-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(420px circle at var(--pv-mx, 50%) var(--pv-my, 50%), rgba(168, 85, 247, 0.09), transparent 45%);
+}
+
+/* Staggered entrance for the direct children of a list/grid.
+   `backwards` fill so finished animations never override hover transforms. */
+@keyframes pv-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+}
+.pv-stagger > * { animation: pv-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.pv-stagger > *:nth-child(2) { animation-delay: 45ms; }
+.pv-stagger > *:nth-child(3) { animation-delay: 90ms; }
+.pv-stagger > *:nth-child(4) { animation-delay: 135ms; }
+.pv-stagger > *:nth-child(5) { animation-delay: 180ms; }
+.pv-stagger > *:nth-child(6) { animation-delay: 225ms; }
+.pv-stagger > *:nth-child(7) { animation-delay: 270ms; }
+.pv-stagger > *:nth-child(8) { animation-delay: 315ms; }
+.pv-stagger > *:nth-child(n + 9) { animation-delay: 360ms; }
+
+/* Skeleton shimmer */
+@keyframes pv-shimmer {
+  to { transform: translateX(100%); }
+}
+.pv-shimmer { position: relative; overflow: hidden; }
+.pv-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.07), transparent);
+  animation: pv-shimmer 1.6s ease-in-out infinite;
+}
+
+/* Light sweep across primary buttons on hover */
+.pv-sheen { position: relative; overflow: hidden; }
+.pv-sheen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  pointer-events: none;
+}
+.pv-sheen:hover::before { left: 130%; }
+
+/* Ambient background motion. Uses the independent `translate` property so it
+   composes with existing Tailwind centering transforms. */
+@keyframes pv-drift {
+  0% { translate: 0 0; }
+  50% { translate: 48px -32px; }
+  100% { translate: -36px 28px; }
+}
+.pv-drift { animation: pv-drift 22s ease-in-out infinite alternate; }
+.pv-drift-slow { animation: pv-drift 30s ease-in-out infinite alternate-reverse; }
+
+@keyframes pv-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+.pv-float { animation: pv-float 6s ease-in-out infinite; }
+
+/* Diff viewer: changed lines flash in, then settle to their normal colour */
+@keyframes pv-flash-add {
+  from { background-color: rgba(16, 185, 129, 0.32); box-shadow: inset 3px 0 0 rgba(16, 185, 129, 0.9); }
+}
+@keyframes pv-flash-remove {
+  from { background-color: rgba(244, 63, 94, 0.32); box-shadow: inset 3px 0 0 rgba(244, 63, 94, 0.9); }
+}
+.pv-flash-add { animation: pv-flash-add 1.3s ease-out backwards; }
+.pv-flash-remove { animation: pv-flash-remove 1.3s ease-out backwards; }
+
+/* Editor: brief tint when switching to another version */
+@keyframes pv-version-flash {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.pv-version-flash {
+  background: radial-gradient(ellipse at top, rgba(168, 85, 247, 0.16), transparent 70%);
+  animation: pv-version-flash 0.7s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Loading spinners still need to read as "busy" */
+  .animate-spin {
+    animation-duration: 1s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Obsidian / Aurora Glass layer (dark theme)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Ambient backdrop (see AmbientBackground.tsx). Gradient-filled orbs instead
+   of blur filters keep the compositor cheap; only transform/opacity animate. ── */
+.pv-ambient {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.pv-ambient-mesh {
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(40% 35% at 20% 25%, rgba(118, 87, 255, 0.10), transparent 70%),
+    radial-gradient(35% 30% at 80% 20%, rgba(177, 78, 255, 0.07), transparent 70%),
+    radial-gradient(45% 40% at 60% 85%, rgba(98, 57, 245, 0.08), transparent 70%);
+  animation: pv-mesh 40s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes pv-mesh {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(3%, -2%, 0) rotate(6deg) scale(1.05); }
+  100% { transform: translate3d(-3%, 2%, 0) rotate(-4deg) scale(1); }
+}
+.pv-orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+.pv-orb-a {
+  width: 46vmax; height: 46vmax; left: -12vmax; top: -14vmax;
+  background: radial-gradient(circle, rgba(118, 87, 255, 0.20), transparent 62%);
+  animation: pv-orb-a 34s ease-in-out infinite alternate;
+}
+.pv-orb-b {
+  width: 40vmax; height: 40vmax; right: -14vmax; top: 18vh;
+  background: radial-gradient(circle, rgba(177, 78, 255, 0.13), transparent 62%);
+  animation: pv-orb-b 42s ease-in-out infinite alternate;
+}
+.pv-orb-c {
+  width: 36vmax; height: 36vmax; left: 28vw; bottom: -20vmax;
+  background: radial-gradient(circle, rgba(132, 75, 255, 0.12), transparent 62%);
+  animation: pv-orb-c 38s ease-in-out infinite alternate;
+}
+@keyframes pv-orb-a { to { transform: translate3d(14vw, 10vh, 0) scale(1.1); } }
+@keyframes pv-orb-b { to { transform: translate3d(-12vw, 14vh, 0) scale(0.92); } }
+@keyframes pv-orb-c { to { transform: translate3d(10vw, -12vh, 0) scale(1.08); } }
+.pv-particles span {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(196, 181, 253, 0.55);
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.6);
+  opacity: 0;
+  animation-name: pv-particle;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes pv-particle {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.45; }
+  100% { transform: translate3d(0, -140px, 0); opacity: 0; }
+}
+.pv-cursor-light {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(132, 75, 255, 0.09), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  will-change: transform;
+}
+.pv-ambient-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(8, 8, 12, 0.55) 100%);
+}
+/* Lighter load on phones */
+@media (max-width: 767px) {
+  .pv-particles span:nth-child(2n) { display: none; }
+  .pv-orb-c { display: none; }
+}
+
+/* ── Glass surfaces ── */
+/* Thin violet light along the top edge of glass cards */
+.dark .pv-glass-edge::before {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.45), transparent);
+  pointer-events: none;
+}
+
+/* Slowly travelling light around a container's border (auth card) */
+@property --pv-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes pv-border-spin {
+  to { --pv-angle: 360deg; }
+}
+.pv-border-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--pv-angle), transparent 0deg, transparent 220deg, rgba(118, 87, 255, 0.85) 285deg, rgba(177, 78, 255, 0.7) 320deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: pv-border-spin 7s linear infinite;
+  pointer-events: none;
+}
+
+/* ── Cursor interactions (see PointerTilt.tsx) ── */
+.pv-spot-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(520px circle at var(--pv-mx, 50%) var(--pv-my, 50%), rgba(132, 75, 255, 0.08), transparent 45%);
+}
+/* Magnetic pull uses the independent `translate` property so it composes with
+   the button's own hover/press scale transforms */
+.pv-mag-active {
+  translate: var(--pv-magx, 0) var(--pv-magy, 0);
+}
+
+/* ── Form focus: soft violet glow (Monaco's hidden input area excluded) ── */
+.dark input:focus-visible,
+.dark select:focus-visible,
+.dark textarea:not(.inputarea):focus-visible {
+  box-shadow: 0 0 0 3px rgba(118, 87, 255, 0.18), 0 0 20px -4px rgba(118, 87, 255, 0.45);
+}
+
+.dark ::selection {
+  background: rgba(118, 87, 255, 0.35);
+  color: #fff;
 }

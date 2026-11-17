@@ -1,9 +1,12 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
+import { PointerTilt } from "./components/motion/PointerTilt";
+import { AmbientBackground } from "./components/motion/AmbientBackground";
 import { Dashboard } from "./pages/Dashboard";
 import { BlueprintEditor } from "./pages/BlueprintEditor";
 import { Compare } from "./pages/Compare";
@@ -24,7 +27,7 @@ const queryClient = new QueryClient({
 
 // Minimal loading placeholder during initial session hydration
 const LoadingScreen: React.FC = () => (
-  <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center font-sans select-none relative overflow-hidden">
+  <div className="min-h-screen bg-transparent text-foreground flex flex-col items-center justify-center font-sans select-none relative overflow-hidden">
     <div className="absolute inset-0 bg-dot-pattern opacity-30 pointer-events-none" />
     <div className="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 animate-pulse">
       <Sparkles className="h-5 w-5" />
@@ -65,62 +68,66 @@ const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
 export const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public Auth Routes */}
-            <Route
-              path="/login"
-              element={
-                <PublicOnlyRoute>
-                  <Login />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <PublicOnlyRoute>
-                  <Login initialMode="signup" />
-                </PublicOnlyRoute>
-              }
-            />
-            <Route
-              path="/verify-email"
-              element={
-                <PublicOnlyRoute>
-                  <VerifyEmail />
-                </PublicOnlyRoute>
-              }
-            />
-
-            {/* Protected Workspace Routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="editor" element={<BlueprintEditor />} />
-              <Route path="compare" element={<Compare />} />
-              <Route path="settings" element={<Settings />} />
+    <MotionConfig reducedMotion="user">
+      <AmbientBackground />
+      <PointerTilt />
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public Auth Routes */}
               <Route
-                path="*"
+                path="/login"
                 element={
-                  <div className="text-center py-20 text-muted-foreground font-sans">
-                    Page Not Found
-                  </div>
+                  <PublicOnlyRoute>
+                    <Login />
+                  </PublicOnlyRoute>
                 }
               />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+              <Route
+                path="/signup"
+                element={
+                  <PublicOnlyRoute>
+                    <Login initialMode="signup" />
+                  </PublicOnlyRoute>
+                }
+              />
+              <Route
+                path="/verify-email"
+                element={
+                  <PublicOnlyRoute>
+                    <VerifyEmail />
+                  </PublicOnlyRoute>
+                }
+              />
+
+              {/* Protected Workspace Routes */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="editor" element={<BlueprintEditor />} />
+                <Route path="compare" element={<Compare />} />
+                <Route path="settings" element={<Settings />} />
+                <Route
+                  path="*"
+                  element={
+                    <div className="text-center py-20 text-muted-foreground font-sans">
+                      Page Not Found
+                    </div>
+                  }
+                />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    </MotionConfig>
   );
 };
 

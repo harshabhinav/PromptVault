@@ -61,6 +61,23 @@ export const Layout: React.FC = () => {
     return localStorage.getItem("sidebar_collapsed") === "true";
   });
 
+  // Phones: the sidebar becomes an off-canvas drawer (the collapse preference applies from md up)
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 767px)").matches);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => {
+      setIsMobile(mq.matches);
+      if (!mq.matches) setMobileNavOpen(false);
+    };
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
+  const collapsed = isCollapsed && !isMobile;
+
   // Command Palette State
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [paletteSearch, setPaletteSearch] = useState("");
@@ -162,21 +179,38 @@ export const Layout: React.FC = () => {
         scale: isLoggingOut ? 0.98 : 1,
       }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="flex min-h-screen bg-background text-foreground font-sans relative overflow-hidden"
+      className="flex min-h-screen bg-transparent text-foreground font-sans relative overflow-hidden"
     >
       {/* Background Dots Overlay & Ambient Radial Glows (Identical to Landing Page) */}
       <div className="absolute inset-0 bg-dot-pattern pointer-events-none opacity-30 z-0" />
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-pulse z-0" />
-      <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-3xl pointer-events-none z-0" />
+
+      {/* Mobile drawer backdrop */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMobileNavOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <aside className={`border-r border-border/70 bg-card/60 backdrop-blur-2xl flex flex-col justify-between z-10 shrink-0 select-none transition-all duration-300 ${
-        isCollapsed ? "w-16" : "w-64"
-      }`}>
+      <aside
+        {...(isMobile && !mobileNavOpen ? ({ inert: "" } as Record<string, string>) : {})}
+        className={`border-r border-border/70 bg-card/60 backdrop-blur-2xl flex flex-col justify-between z-10 shrink-0 select-none transition-all duration-300 ${
+          collapsed ? "w-16" : "w-64"
+        } max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:bg-card/95 max-md:shadow-2xl ${
+          mobileNavOpen ? "" : "max-md:-translate-x-full"
+        }`}
+      >
         <div>
           {/* Logo Header with Toggle Button */}
           <div className={`p-4 flex border-b border-border/60 transition-all ${
-            isCollapsed ? "flex-col items-center gap-4" : "flex-row items-center justify-between"
+            collapsed ? "flex-col items-center gap-4" : "flex-row items-center justify-between"
           }`}>
             <div className="flex items-center gap-2.5 overflow-hidden">
               <video
@@ -187,7 +221,7 @@ export const Layout: React.FC = () => {
                 playsInline
                 className="w-10 h-10 object-contain flex-shrink-0"
               />
-              {!isCollapsed && (
+              {!collapsed && (
                 <div className="truncate">
                   <span className="font-extrabold text-xs tracking-wider uppercase text-gradient">PromptVault</span>
                   <span className="block text-[9px] text-muted-foreground/80 leading-none tracking-widest uppercase truncate font-mono">Version & Compare</span>
@@ -198,11 +232,11 @@ export const Layout: React.FC = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={toggleSidebar}
+              onClick={isMobile ? () => setMobileNavOpen(false) : toggleSidebar}
               className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0 rounded-lg"
-              title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+              title={isMobile ? "Close navigation" : collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
-              <Menu className="h-4 w-4" />
+              {isMobile ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           </div>
 
@@ -214,19 +248,30 @@ export const Layout: React.FC = () => {
                 <NavLink
                   key={item.name}
                   to={item.path}
-                  title={isCollapsed ? item.name : undefined}
+                  title={collapsed ? item.name : undefined}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 text-xs font-semibold rounded-xl transition-all duration-200 ${
-                      isCollapsed ? "justify-center px-0 py-2.5" : "px-3.5 py-2.5"
+                    `group relative flex items-center gap-3 text-xs font-semibold rounded-xl border border-transparent transition-colors duration-200 ${
+                      collapsed ? "justify-center px-0 py-2.5" : "px-3.5 py-2.5"
                     } ${
                       isActive
-                        ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 shadow-md shadow-indigo-500/10 font-bold"
+                        ? "text-indigo-400 font-bold"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/30"
                     }`
                   }
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {!isCollapsed && <span>{item.name}</span>}
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <motion.span
+                          layoutId="pv-nav-active"
+                          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                          className="absolute -inset-px rounded-xl bg-indigo-500/10 border border-indigo-500/30 shadow-md shadow-indigo-500/10"
+                        />
+                      )}
+                      <Icon className="relative h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                      {!collapsed && <span className="relative">{item.name}</span>}
+                    </>
+                  )}
                 </NavLink>
               );
             })}
@@ -237,7 +282,7 @@ export const Layout: React.FC = () => {
         <div className="p-3 border-t border-border/60 space-y-3">
           {/* User Avatar Section */}
           <div className="relative">
-            {!isCollapsed ? (
+            {!collapsed ? (
               <div 
                 onClick={() => setShowUserPopover(prev => !prev)}
                 className="flex items-center justify-between p-2 rounded-xl bg-card/40 hover:bg-secondary/50 border border-border/60 cursor-pointer transition-all duration-150 group"
@@ -311,7 +356,7 @@ export const Layout: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          {!isCollapsed ? (
+          {!collapsed ? (
             <>
               <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-card/40 text-[10px] font-semibold border border-border/40">
                 <span className="text-muted-foreground flex items-center gap-1.5">
@@ -367,8 +412,15 @@ export const Layout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 z-10">
         {/* Header bar */}
-        <header className="h-14 border-b border-border/60 bg-black/30 backdrop-blur-xl px-6 flex items-center justify-between select-none">
-          <div className="flex items-center gap-2 text-xs">
+        <header className="h-14 border-b border-border/60 bg-black/30 backdrop-blur-xl px-4 md:px-6 flex items-center justify-between gap-3 select-none">
+          <div className="flex items-center gap-2 text-xs min-w-0">
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              className="md:hidden -ml-1 mr-1 h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-colors"
+              aria-label="Open navigation"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
             <span className="text-muted-foreground font-semibold uppercase tracking-wider">PromptVault</span>
             <span className="text-muted-foreground/50">/</span>
             <span className="font-semibold text-foreground uppercase tracking-wider">
@@ -381,8 +433,8 @@ export const Layout: React.FC = () => {
               className="flex items-center gap-2 px-3 py-1.5 text-[11px] text-muted-foreground bg-card/40 rounded-xl border border-border/60 hover:bg-secondary/40 hover:text-foreground transition-all duration-200"
             >
               <Search className="h-3 w-3" />
-              <span>Search Vault</span>
-              <kbd className="bg-secondary/80 px-1.5 py-0.5 rounded-md border border-border text-[9px] font-sans flex items-center gap-0.5 select-none">
+              <span className="hidden sm:inline">Search Vault</span>
+              <kbd className="bg-secondary/80 px-1.5 py-0.5 rounded-md border border-border text-[9px] font-sans hidden sm:flex items-center gap-0.5 select-none">
                 <Command className="h-2 w-2" />
                 <span>K</span>
               </kbd>
@@ -391,8 +443,15 @@ export const Layout: React.FC = () => {
         </header>
 
         {/* Content Outlet */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <Outlet />
+          </motion.div>
         </main>
       </div>
 

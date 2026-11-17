@@ -8,6 +8,20 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Brand violet (#7657FF) mapped onto the indigo scale used across the app
+        indigo: {
+          50: "#f3f0ff",
+          100: "#e9e3ff",
+          200: "#d4c9ff",
+          300: "#b5a3ff",
+          400: "#957aff",
+          500: "#7657ff",
+          600: "#6239f5",
+          700: "#5229d9",
+          800: "#4423b0",
+          900: "#3a218c",
+          950: "#211254",
+        },
         border: "hsl(var(--border) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",
         ring: "hsl(var(--ring) / <alpha-value>)",

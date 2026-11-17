@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
-  ArrowRightLeft, Play, Sparkles, AlertCircle, Clock, Zap, Columns, Layers, ThumbsUp, ThumbsDown, Eye, CheckSquare, Download, Printer, GitCommit, FileText, Check
+  ArrowRightLeft, Play, Sparkles, AlertCircle, Clock, Zap, Columns, Layers, ThumbsUp, ThumbsDown, Eye, CheckSquare, Download, Printer, GitCommit, FileText, Check, AlertTriangle, CheckCircle2, XCircle
 } from "lucide-react";
 import { blueprintApi, versionApi, compareApi, Blueprint, Version, CompareResponse, VersionScores } from "../services/api";
 import { PromptDiff } from "../components/PromptDiff";
@@ -622,13 +622,13 @@ export const Compare: React.FC = () => {
                       <div className="divide-y divide-border/20 pt-2 text-xs font-sans max-h-[190px] overflow-y-auto">
                         {hasRuns.regression_report.map((item) => {
                           let badgeColor = "border-border text-muted-foreground bg-secondary/20";
-                          let badgeIcon = "⚠";
+                          let BadgeIcon = AlertTriangle;
                           if (item.status === "improved") {
                             badgeColor = "border-emerald-500/30 text-emerald-400 bg-emerald-500/5";
-                            badgeIcon = "✅";
+                            BadgeIcon = CheckCircle2;
                           } else if (item.status === "worse") {
                             badgeColor = "border-rose-500/30 text-rose-400 bg-rose-500/5";
-                            badgeIcon = "❌";
+                            BadgeIcon = XCircle;
                           }
                           
                           return (
@@ -638,7 +638,7 @@ export const Compare: React.FC = () => {
                                 <p className="text-[10px] text-muted-foreground/80 leading-relaxed mt-0.5">{item.explanation}</p>
                               </div>
                               <span className={`text-[8.5px] uppercase font-mono font-bold border rounded px-1.5 py-0.5 flex items-center gap-1 shrink-0 select-none ${badgeColor}`}>
-                                <span>{badgeIcon}</span>
+                                <BadgeIcon className="h-3 w-3" />
                                 {item.status.replace("_", " ")}
                               </span>
                             </div>
@@ -805,7 +805,7 @@ export const Compare: React.FC = () => {
                               <CardContent className="p-3">
                                 {(runA as any).status === "failed" ? (
                                   <div className="text-[10.5px] font-mono text-rose-400 bg-rose-950/30 border border-rose-500/20 p-2.5 rounded-lg">
-                                    <span className="font-bold block mb-1">⚠ Execution Failed</span>
+                                    <span className="font-bold mb-1 flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0" />Execution Failed</span>
                                     {(runA as any).error || "Unknown error occurred."}
                                   </div>
                                 ) : (
@@ -837,7 +837,7 @@ export const Compare: React.FC = () => {
                               <CardContent className="p-3">
                                 {(runB as any)?.status === "failed" ? (
                                   <div className="text-[10.5px] font-mono text-rose-400 bg-rose-950/30 border border-rose-500/20 p-2.5 rounded-lg">
-                                    <span className="font-bold block mb-1">⚠ Execution Failed</span>
+                                    <span className="font-bold mb-1 flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0" />Execution Failed</span>
                                     {(runB as any).error || "Unknown error occurred."}
                                   </div>
                                 ) : (

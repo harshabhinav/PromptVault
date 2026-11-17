@@ -5,8 +5,9 @@ export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
+      data-spotlight=""
       className={twMerge(
-        "rounded-2xl border border-border/80 bg-card/60 backdrop-blur-2xl text-card-foreground shadow-2xl transition-all duration-300 hover:border-indigo-500/30 overflow-hidden relative",
+        "pv-glass-edge rounded-2xl border border-border/80 dark:border-white/[0.08] bg-card/60 dark:bg-card/65 backdrop-blur-2xl dark:backdrop-saturate-150 text-card-foreground shadow-2xl dark:shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-300 hover:border-indigo-500/30 overflow-hidden relative",
         className
       )}
       {...props}

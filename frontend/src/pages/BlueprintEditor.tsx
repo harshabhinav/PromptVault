@@ -654,7 +654,7 @@ export const BlueprintEditor: React.FC = () => {
                   <div
                     key={ver.id}
                     onClick={() => loadVersionDetails(ver)}
-                    className="relative pl-6 pb-5 cursor-pointer group last:pb-0"
+                    className="relative pl-6 pb-5 cursor-pointer group last:pb-0 transition-transform duration-200 hover:translate-x-0.5"
                   >
                     {/* Connecting Vertical Line */}
                     {idx !== versions.length - 1 && (
@@ -766,19 +766,33 @@ export const BlueprintEditor: React.FC = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setActiveTab("user")}
-                  className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors ${
-                    activeTab === "user" ? "bg-card text-foreground border border-border/60 shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  className={`relative px-3 py-1 text-[11px] font-bold rounded-md border border-transparent transition-colors ${
+                    activeTab === "user" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  Prompt Template
+                  {activeTab === "user" && (
+                    <motion.span
+                      layoutId="pv-editor-tab"
+                      transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                      className="absolute -inset-px rounded-md bg-card border border-border/60 shadow-sm"
+                    />
+                  )}
+                  <span className="relative">Prompt Template</span>
                 </button>
                 <button
                   onClick={() => setActiveTab("system")}
-                  className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors ${
-                    activeTab === "system" ? "bg-card text-foreground border border-border/60 shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  className={`relative px-3 py-1 text-[11px] font-bold rounded-md border border-transparent transition-colors ${
+                    activeTab === "system" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  System Prompt
+                  {activeTab === "system" && (
+                    <motion.span
+                      layoutId="pv-editor-tab"
+                      transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                      className="absolute -inset-px rounded-md bg-card border border-border/60 shadow-sm"
+                    />
+                  )}
+                  <span className="relative">System Prompt</span>
                 </button>
               </div>
               
@@ -805,6 +819,7 @@ export const BlueprintEditor: React.FC = () => {
 
             {/* Monaco Editor Frame */}
             <div className="flex-1 min-h-0 relative">
+              <div key={selectedVersion?.id ?? "draft"} className="pv-version-flash pointer-events-none absolute inset-0 z-10" />
               <Editor
                 height="100%"
                 language="markdown"
@@ -1150,7 +1165,7 @@ export const BlueprintEditor: React.FC = () => {
             title="Open live prompt playground chat for active version"
           >
             <MessageSquare className="h-3.5 w-3.5 text-indigo-400" />
-            💬 Prompt Playground
+            Prompt Playground
           </Button>
           <Button 
             variant="outline" 

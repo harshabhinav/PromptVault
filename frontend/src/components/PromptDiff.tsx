@@ -155,11 +155,12 @@ export const PromptDiff: React.FC<PromptDiffProps> = ({ original, modified }) =>
           return (
             <div
               key={index}
-              className={`flex items-start px-4 py-1 leading-relaxed ${
+              style={isAdded || isRemoved ? { animationDelay: `${Math.min(index * 30, 600)}ms` } : undefined}
+              className={`flex items-start px-4 py-1 leading-relaxed transition-colors ${
                 isAdded 
-                  ? "bg-emerald-500/10 text-emerald-400 dark:bg-emerald-950/20" 
+                  ? "bg-emerald-500/10 text-emerald-400 dark:bg-emerald-950/20 pv-flash-add" 
                   : isRemoved 
-                  ? "bg-rose-500/10 text-rose-400 dark:bg-rose-950/20" 
+                  ? "bg-rose-500/10 text-rose-400 dark:bg-rose-950/20 pv-flash-remove" 
                   : "text-muted-foreground/90 hover:bg-secondary/10"
               }`}
             >

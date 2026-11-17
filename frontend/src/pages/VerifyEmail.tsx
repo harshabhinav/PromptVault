@@ -71,7 +71,7 @@ export const VerifyEmail: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 relative overflow-hidden select-none font-sans">
+    <div className="min-h-screen bg-transparent text-foreground flex items-center justify-center p-4 relative overflow-hidden select-none font-sans">
       {/* Subtle Background Pattern */}
       <div className="absolute inset-0 bg-dot-pattern opacity-40 pointer-events-none" />
 

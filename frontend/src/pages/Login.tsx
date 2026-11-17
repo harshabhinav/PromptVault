@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Sparkles, Mail, Lock, User, AlertCircle, GitBranch, FolderLock, FilePlus, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Label } from "../components/ui/Label";
+import { Reveal } from "../components/motion/Reveal";
 
 const heroSubtitles = [
   "Version Control for AI Prompts.",
@@ -19,6 +20,58 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
   const navigate = useNavigate();
   const { signInWithEmail, signUp, resendVerification, signInWithGoogle } = useAuth();
   const shouldReduceMotion = useReducedMotion();
+
+  // 3D depth effects: only for precise pointers (desktop) and when motion is allowed
+  const [finePointer, setFinePointer] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setFinePointer(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  const depthEnabled = finePointer && !shouldReduceMotion;
+
+  // Left column: layers drift slightly opposite to the pointer, at different depths
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const smoothX = useSpring(pointerX, { stiffness: 60, damping: 18 });
+  const smoothY = useSpring(pointerY, { stiffness: 60, damping: 18 });
+  const headingX = useTransform(smoothX, (v) => -v * 16);
+  const headingY = useTransform(smoothY, (v) => -v * 10);
+  const descriptionX = useTransform(smoothX, (v) => -v * 9);
+  const descriptionY = useTransform(smoothY, (v) => -v * 6);
+  const metricsX = useTransform(smoothX, (v) => -v * 5);
+  const metricsY = useTransform(smoothY, (v) => -v * 3);
+  useEffect(() => {
+    if (!depthEnabled) {
+      pointerX.set(0);
+      pointerY.set(0);
+      return;
+    }
+    const onMove = (e: MouseEvent) => {
+      pointerX.set(e.clientX / window.innerWidth - 0.5);
+      pointerY.set(e.clientY / window.innerHeight - 0.5);
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => window.removeEventListener("mousemove", onMove);
+  }, [depthEnabled, pointerX, pointerY]);
+
+  // Auth card: interactive 3D tilt toward the cursor
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const cardRotateX = useSpring(tiltX, { stiffness: 150, damping: 18 });
+  const cardRotateY = useSpring(tiltY, { stiffness: 150, damping: 18 });
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!depthEnabled) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    tiltY.set(((e.clientX - r.left) / r.width - 0.5) * 10);
+    tiltX.set(-((e.clientY - r.top) / r.height - 0.5) * 10);
+  };
+  const handleCardMouseLeave = () => {
+    tiltX.set(0);
+    tiltY.set(0);
+  };
   
   // Rotating Subtitle Index
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState(0);
@@ -207,12 +260,10 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
         filter: isNavigatingToDashboard ? "blur(6px)" : "blur(0px)",
       }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className="min-h-screen bg-background text-foreground flex flex-col justify-between overflow-x-hidden font-sans select-none relative"
+      className="min-h-screen bg-transparent text-foreground flex flex-col justify-between overflow-x-hidden font-sans select-none relative"
     >
       {/* Background Dot Grid Pattern & Radial Glows */}
       <div className="absolute inset-0 bg-dot-pattern opacity-30 pointer-events-none" />
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none animate-pulse" />
-      <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Split Screen Hero Section */}
       <div className="w-full max-w-7xl mx-auto min-h-screen grid grid-cols-1 lg:grid-cols-2 gap-12 items-center px-4 sm:px-6 lg:px-8 py-12 lg:py-16 z-10">
@@ -222,10 +273,13 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="flex flex-col items-start justify-center space-y-6 text-left lg:pr-8"
+          className="pv-stagger flex flex-col items-start justify-center space-y-6 text-left lg:pr-8"
         >
           {/* Headline Container with Centered Behind Glow */}
-          <div className="relative w-full">
+          <motion.div
+            style={depthEnabled ? { x: headingX, y: headingY } : undefined}
+            className="relative w-full drop-shadow-[0_10px_28px_rgba(124,58,237,0.28)]"
+          >
             {/* Centered Ambient Glow behind heading */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 lg:w-[450px] h-32 sm:h-44 bg-gradient-to-r from-purple-600/25 via-indigo-500/20 to-purple-600/25 rounded-full blur-3xl sm:blur-[100px] pointer-events-none -z-10 animate-pulse" />
             
@@ -247,15 +301,21 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                 </motion.p>
               </AnimatePresence>
             </div>
-          </div>
+          </motion.div>
 
           {/* Description */}
-          <p className="text-base sm:text-lg text-muted-foreground/80 max-w-xl leading-relaxed font-normal">
+          <motion.p
+            style={depthEnabled ? { x: descriptionX, y: descriptionY } : undefined}
+            className="text-base sm:text-lg text-muted-foreground/80 max-w-xl leading-relaxed font-normal"
+          >
             A complete workspace to create, version, test, and optimize your AI prompts in one organized environment.
-          </p>
+          </motion.p>
 
           {/* Quick Metrics Badge Row */}
-          <div className="pt-4 grid grid-cols-3 gap-6 border-t border-border/30 w-full max-w-md">
+          <motion.div
+            style={depthEnabled ? { x: metricsX, y: metricsY } : undefined}
+            className="pt-4 grid grid-cols-3 gap-6 border-t border-border/30 w-full max-w-md"
+          >
             <div>
               <div className="text-xl font-bold text-foreground">100%</div>
               <div className="text-xs text-muted-foreground">Versioned</div>
@@ -268,7 +328,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
               <div className="text-xl font-bold text-foreground">Secure Vault</div>
               <div className="text-xs text-muted-foreground">Your data stays yours</div>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Right Side: Fixed Authentication Card with In-Place Form Transition */}
@@ -277,9 +337,12 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: "easeOut", delay: 0.1 }}
-          className="w-full max-w-md mx-auto lg:ml-auto"
+          onMouseMove={handleCardMouseMove}
+          onMouseLeave={handleCardMouseLeave}
+          style={depthEnabled ? { rotateX: cardRotateX, rotateY: cardRotateY, transformPerspective: 1100 } : undefined}
+          className="w-full max-w-md mx-auto lg:ml-auto will-change-transform"
         >
-          <div className="bg-card/70 backdrop-blur-2xl border border-border/80 hover:border-indigo-500/30 rounded-2xl p-8 shadow-2xl space-y-6 relative overflow-hidden transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-indigo-500/10">
+          <div data-spotlight="" className="pv-border-glow bg-card/65 backdrop-blur-2xl backdrop-saturate-150 border border-purple-500/20 hover:border-purple-500/40 rounded-2xl p-8 shadow-2xl shadow-purple-950/50 space-y-6 relative overflow-hidden transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-purple-900/40">
             {/* Ambient Card Top Glow */}
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -290,7 +353,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
               loop
               muted
               playsInline
-              className="w-20 h-20 mx-auto mb-5 object-contain"
+              className="w-20 h-20 mx-auto mb-5 object-contain pv-float"
             />
 
             {/* Error Alert */}
@@ -383,7 +446,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                   {/* Divider */}
                   <div className="relative flex items-center justify-center my-4">
                     <div className="border-t border-border/60 w-full" />
-                    <span className="bg-card px-3 text-[10px] uppercase font-mono tracking-widest text-muted-foreground/70 shrink-0">
+                    <span className="bg-transparent px-3 text-[10px] uppercase font-mono tracking-widest text-muted-foreground/70 shrink-0">
                       OR
                     </span>
                     <div className="border-t border-border/60 w-full" />
@@ -396,7 +459,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                     onClick={handleGoogleSignIn}
                     isLoading={googleLoading}
                     disabled={loading || googleLoading}
-                    className="w-full h-9 text-xs font-semibold border-border/70 bg-secondary/30 hover:bg-secondary/70 hover:border-border text-foreground flex items-center justify-center gap-2 transition-all duration-200 ease-in-out hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                    className="w-full h-9 text-xs font-semibold border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-indigo-400/40 hover:shadow-[0_0_22px_-6px_rgba(118,87,255,0.55)] text-foreground flex items-center justify-center gap-2.5 transition-all duration-200 ease-in-out hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                   >
                     <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                       <path
@@ -608,7 +671,8 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
           {/* 3-Column Feature Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Card 1: Version Control */}
-            <div className="rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
+            <Reveal index={0} className="h-full">
+            <div data-tilt="4" className="relative h-full rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
               <div className="h-12 w-12 rounded-xl bg-purple-900/20 text-purple-400 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-105 transition-transform">
                 <GitBranch className="h-6 w-6" />
               </div>
@@ -619,9 +683,11 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                 Track every iteration, compare changes side-by-side, and restore previous versions instantly.
               </p>
             </div>
+            </Reveal>
 
             {/* Card 2: AI Evaluation Engine */}
-            <div className="rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
+            <Reveal index={1} className="h-full">
+            <div data-tilt="4" className="relative h-full rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
               <div className="h-12 w-12 rounded-xl bg-purple-900/20 text-purple-400 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-105 transition-transform">
                 <Sparkles className="h-6 w-6" />
               </div>
@@ -632,9 +698,11 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                 Run automated evaluations to check for clarity, missing context, and expected output quality.
               </p>
             </div>
+            </Reveal>
 
             {/* Card 3: Organized Vault */}
-            <div className="rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
+            <Reveal index={2} className="h-full">
+            <div data-tilt="4" className="relative h-full rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
               <div className="h-12 w-12 rounded-xl bg-purple-900/20 text-purple-400 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-105 transition-transform">
                 <FolderLock className="h-6 w-6" />
               </div>
@@ -645,6 +713,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                 Categorize, tag, and search your personal prompt library with ease.
               </p>
             </div>
+            </Reveal>
           </div>
         </div>
       </div>
@@ -668,6 +737,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
           {/* 3 Step Connected Workflow Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
             {/* Step 1 Card */}
+            <Reveal index={0}>
             <motion.div
               whileHover={{ y: -4 }}
               className="bg-card/40 backdrop-blur-xl border border-border/60 hover:border-indigo-500/40 rounded-2xl p-6 relative hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group space-y-4"
@@ -687,8 +757,10 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                 Write, save, and organize your AI prompts in a structured workspace.
               </p>
             </motion.div>
+            </Reveal>
 
             {/* Step 2 Card */}
+            <Reveal index={1}>
             <motion.div
               whileHover={{ y: -4 }}
               className="bg-card/40 backdrop-blur-xl border border-border/60 hover:border-purple-500/40 rounded-2xl p-6 relative hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 group space-y-4"
@@ -708,8 +780,10 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                 Track every change, compare versions, and restore previous prompt iterations instantly.
               </p>
             </motion.div>
+            </Reveal>
 
             {/* Step 3 Card */}
+            <Reveal index={2}>
             <motion.div
               whileHover={{ y: -4 }}
               className="bg-card/40 backdrop-blur-xl border border-border/60 hover:border-sky-500/40 rounded-2xl p-6 relative hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300 group space-y-4"
@@ -729,6 +803,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                 Evaluate prompts with AI insights and improve output quality.
               </p>
             </motion.div>
+            </Reveal>
           </div>
         </div>
       </div>
@@ -918,7 +993,8 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={handleStartBuildingFree}
-              className="w-full sm:w-auto h-12 px-8 text-sm font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:brightness-110 text-white rounded-xl shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+              data-magnetic=""
+              className="pv-sheen w-full sm:w-auto h-12 px-8 text-sm font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:brightness-110 text-white rounded-xl shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>Start Building Free</span>
               <span className="text-base">→</span>
@@ -956,7 +1032,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                   <span className="ml-2 font-bold text-foreground">prompt_v1.1_seo_optimized.json</span>
                 </div>
                 <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
-                  🟢 AI Score: 96/100
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 mr-1.5 align-middle" />AI Score: 96/100
                 </span>
               </div>
               <div className="text-[11px] text-gray-300 leading-relaxed font-mono">
