@@ -67,6 +67,7 @@ export const AmbientBackground: React.FC = () => {
   return (
     <div aria-hidden="true" className="pv-ambient hidden dark:block">
       <div className="pv-ambient-mesh" />
+      <div className="pv-ambient-grid" />
       <div className="pv-orb pv-orb-a" />
       <div className="pv-orb pv-orb-b" />
       <div className="pv-orb pv-orb-c" />
@@ -80,6 +81,7 @@ export const AmbientBackground: React.FC = () => {
       </div>
       <div ref={glowRef} className="pv-cursor-light" />
       <div className="pv-ambient-vignette" />
+      <div className="pv-noise" />
     </div>
   );
 };

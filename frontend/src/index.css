@@ -54,6 +54,10 @@
   * {
     @apply border-border;
   }
+  /* Positioned root so scroll-linked animations measure offsets reliably */
+  html {
+    position: relative;
+  }
   body {
     @apply bg-background text-foreground transition-colors duration-300;
   }
@@ -269,7 +273,7 @@
 }
 .pv-orb-c {
   width: 36vmax; height: 36vmax; left: 28vw; bottom: -20vmax;
-  background: radial-gradient(circle, rgba(132, 75, 255, 0.12), transparent 62%);
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.07), transparent 62%);
   animation: pv-orb-c 38s ease-in-out infinite alternate;
 }
 @keyframes pv-orb-a { to { transform: translate3d(14vw, 10vh, 0) scale(1.1); } }
@@ -376,4 +380,218 @@
 .dark ::selection {
   background: rgba(118, 87, 255, 0.35);
   color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Spatial layer — hero workspace, connection lines, version & eval motion
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Atmosphere: perspective floor grid + fine film grain (static, cheap) */
+.pv-ambient-grid {
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -6%;
+  height: 55%;
+  transform: perspective(700px) rotateX(64deg);
+  transform-origin: bottom;
+  background-image:
+    linear-gradient(rgba(132, 75, 255, 0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(132, 75, 255, 0.10) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+  mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+  opacity: 0.55;
+}
+.pv-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ── Hero workspace scene (HeroWorkspace.tsx) ── */
+.pv-ws-floor {
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: -14%;
+  height: 72%;
+  transform: translateZ(-90px) rotateX(64deg);
+  transform-origin: bottom;
+  background-image:
+    linear-gradient(rgba(118, 87, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(118, 87, 255, 0.22) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 25%, transparent 70%);
+  mask-image: radial-gradient(ellipse at center, #000 25%, transparent 70%);
+  opacity: 0.5;
+}
+.pv-ws-card {
+  background: linear-gradient(180deg, rgba(30, 27, 46, 0.94), rgba(17, 15, 27, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(118, 87, 255, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.pv-ws-version {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: #cfcae6;
+}
+.pv-ws-agent {
+  height: 26px;
+  width: 26px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c4b5fd;
+  background: rgba(118, 87, 255, 0.12);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  box-shadow: 0 0 18px -4px rgba(118, 87, 255, 0.5);
+}
+/* Animated connection lines: dashes flow toward the destination */
+.pv-ws-line {
+  fill: none;
+  stroke-width: 0.6;
+  stroke-dasharray: 2 2.5;
+  stroke-linecap: round;
+  opacity: 0.7;
+  animation: pv-dash-flow 1.6s linear infinite;
+}
+@keyframes pv-dash-flow {
+  to { stroke-dashoffset: -9; }
+}
+.pv-ws-packet {
+  fill: #ece7ff;
+  filter: drop-shadow(0 0 1.5px #a78bfa) drop-shadow(0 0 3px #22d3ee);
+}
+.pv-ws-caret {
+  display: inline-block;
+  width: 4px;
+  height: 9px;
+  margin-left: 2px;
+  vertical-align: -1px;
+  background: #a78bfa;
+  animation: pv-caret 1s steps(1) infinite;
+}
+@keyframes pv-caret {
+  50% { opacity: 0; }
+}
+
+/* The 8s story loop: capture → transfer → editor update → V3 → evaluation */
+.pv-ws-capture { animation: pv-ws-capture 8s ease-in-out infinite; }
+@keyframes pv-ws-capture {
+  0%, 8% { opacity: 0; transform: translateY(4px) scale(0.9); }
+  14%, 86% { opacity: 1; transform: none; }
+  94%, 100% { opacity: 0; transform: translateY(-2px); }
+}
+.pv-ws-added { animation: pv-ws-added 8s ease-out infinite; }
+@keyframes pv-ws-added {
+  0%, 40% { opacity: 0; transform: translateX(-6px); background-color: rgba(16, 185, 129, 0); box-shadow: none; }
+  44% { opacity: 1; transform: none; background-color: rgba(16, 185, 129, 0.28); box-shadow: inset 2px 0 0 #34d399; }
+  60%, 88% { opacity: 1; transform: none; background-color: rgba(16, 185, 129, 0.1); box-shadow: inset 2px 0 0 rgba(52, 211, 153, 0.6); }
+  96%, 100% { opacity: 0; }
+}
+.pv-ws-v3 { animation: pv-ws-v3 8s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+@keyframes pv-ws-v3 {
+  0%, 52% { opacity: 0; transform: translateY(8px) scale(0.94); }
+  56% { opacity: 1; transform: none; box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.55), 0 0 24px -2px rgba(118, 87, 255, 0.75); }
+  70%, 90% { opacity: 1; transform: none; }
+  97%, 100% { opacity: 0; }
+}
+.pv-ws-score {
+  stroke-dasharray: 100;
+  animation: pv-ws-score 8s ease-out infinite;
+}
+@keyframes pv-ws-score {
+  0%, 60% { stroke-dashoffset: 100; }
+  74%, 92% { stroke-dashoffset: 8; }
+  100% { stroke-dashoffset: 100; }
+}
+
+/* ── Landing "How it works": light travelling along the step connector ── */
+.pv-steps-line {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(118, 87, 255, 0.15), rgba(34, 211, 238, 0.3), rgba(118, 87, 255, 0.15));
+  pointer-events: none;
+}
+.pv-steps-line::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  height: 3px;
+  width: 18%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.9), rgba(34, 211, 238, 0.8), transparent);
+  animation: pv-steps-travel 4.5s ease-in-out infinite;
+}
+@keyframes pv-steps-travel {
+  0% { left: 0%; opacity: 0; }
+  12%, 88% { opacity: 1; }
+  100% { left: 82%; opacity: 0; }
+}
+
+/* ── Dashboard extension banner: capture "data stream" along its edge ── */
+.pv-flow-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.7), rgba(118, 87, 255, 0.9), transparent) no-repeat;
+  background-size: 40% 100%;
+  animation: pv-flow-x 3.6s ease-in-out infinite;
+}
+@keyframes pv-flow-x {
+  from { background-position: -60% 0; }
+  to { background-position: 160% 0; }
+}
+
+/* ── Version history: active node pulse + light flowing down its connector ── */
+.pv-node-pulse { animation: pv-node-pulse 2.4s ease-out infinite; }
+@keyframes pv-node-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(118, 87, 255, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgba(118, 87, 255, 0); }
+}
+.pv-timeline-flow {
+  background-image: linear-gradient(180deg, transparent, rgba(118, 87, 255, 0.75), transparent);
+  background-size: 100% 40%;
+  background-repeat: no-repeat;
+  animation: pv-timeline-flow 2.8s ease-in-out infinite;
+}
+@keyframes pv-timeline-flow {
+  from { background-position: 0 -60%; }
+  to { background-position: 0 160%; }
+}
+
+/* ── Git diff: persistent accent rails on changed lines ── */
+.pv-flash-add { box-shadow: inset 2px 0 0 rgba(52, 211, 153, 0.55); }
+.pv-flash-remove { box-shadow: inset 2px 0 0 rgba(251, 113, 133, 0.55); }
+
+/* ── Evaluation scorecard bars grow in ── */
+.pv-bar-grow {
+  transform-origin: left center;
+  animation: pv-bar-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+@keyframes pv-bar-grow {
+  from { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Story elements show their final, fully revealed state */
+  .pv-ws-anim { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .pv-ws-score { stroke-dashoffset: 8; }
+  .pv-ws-line, .pv-ws-caret, .pv-steps-line::after, .pv-flow-line, .pv-timeline-flow, .pv-node-pulse { animation: none !important; }
 }

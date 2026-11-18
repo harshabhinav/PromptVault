@@ -658,13 +658,13 @@ export const BlueprintEditor: React.FC = () => {
                   >
                     {/* Connecting Vertical Line */}
                     {idx !== versions.length - 1 && (
-                      <div className="absolute left-[7px] top-[18px] bottom-0 w-[2px] bg-border/40 group-hover:bg-border/60 transition-colors" />
+                      <div className={`absolute left-[7px] top-[18px] bottom-0 w-[2px] bg-border/40 group-hover:bg-border/60 transition-colors ${isActive ? "pv-timeline-flow" : ""}`} />
                     )}
 
                     {/* Timeline Node Dot */}
                     <div className={`absolute left-0 top-[2px] h-[16px] w-[16px] rounded-full border-2 flex items-center justify-center bg-background transition-all duration-200 ${
                       isActive 
-                        ? "border-primary bg-primary/10 shadow-sm shadow-primary/20 scale-110" 
+                        ? "border-primary bg-primary/10 shadow-sm shadow-primary/20 scale-110 pv-node-pulse" 
                         : "border-border/60 group-hover:border-border"
                     }`}>
                       <div className={`h-1.5 w-1.5 rounded-full transition-all duration-200 ${

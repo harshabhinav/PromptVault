@@ -598,10 +598,10 @@ export const Compare: React.FC = () => {
                               </div>
                               <div className="grid grid-cols-2 gap-2 h-1.5 select-none">
                                 <div className="w-full bg-secondary/35 rounded-full h-full overflow-hidden">
-                                  <div className="bg-indigo-500 h-full rounded-full transition-all duration-300" style={{ width: `${valA}%` }} />
+                                  <div className="pv-bar-grow bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-full transition-all duration-300" style={{ width: `${valA}%` }} />
                                 </div>
                                 <div className="w-full bg-secondary/35 rounded-full h-full overflow-hidden">
-                                  <div className="bg-purple-500 h-full rounded-full transition-all duration-300" style={{ width: `${valB}%` }} />
+                                  <div className="pv-bar-grow bg-gradient-to-r from-purple-600 to-fuchsia-400 h-full rounded-full transition-all duration-300" style={{ width: `${valB}%` }} />
                                 </div>
                               </div>
                             </div>

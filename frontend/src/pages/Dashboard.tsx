@@ -576,6 +576,7 @@ export const Dashboard: React.FC = () => {
             transition={{ duration: 0.35, ease: "easeOut" }}
             className="p-5 rounded-2xl glass-card border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-background shadow-lg shadow-purple-950/20 relative overflow-hidden my-4"
           >
+            <div aria-hidden="true" className="pv-flow-line" />
             {isExtensionConnected ? (
               /* State B: Connected */
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -613,7 +614,7 @@ export const Dashboard: React.FC = () => {
               /* State A: Not Connected / Download */
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 shrink-0 flex items-center justify-center">
+                  <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 shrink-0 flex items-center justify-center pv-node-pulse">
                     <video
                       src="/pv-logo-loop.mp4"
                       autoPlay

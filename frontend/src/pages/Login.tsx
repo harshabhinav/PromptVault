@@ -7,6 +7,12 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Label } from "../components/ui/Label";
 import { Reveal } from "../components/motion/Reveal";
+import { HeroWorkspace } from "../components/motion/HeroWorkspace";
+import { SplitText, ScrollText, Parallax } from "../components/motion/TextMotion";
+import { WorkflowStory } from "../components/motion/WorkflowStory";
+import { CountUp } from "../components/motion/CountUp";
+
+const GRADIENT_TEXT = "bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400";
 
 const heroSubtitles = [
   "Version Control for AI Prompts.",
@@ -260,7 +266,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
         filter: isNavigatingToDashboard ? "blur(6px)" : "blur(0px)",
       }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      className="min-h-screen bg-transparent text-foreground flex flex-col justify-between overflow-x-hidden font-sans select-none relative"
+      className="min-h-screen bg-transparent text-foreground flex flex-col justify-between overflow-x-clip font-sans select-none relative"
     >
       {/* Background Dot Grid Pattern & Radial Glows */}
       <div className="absolute inset-0 bg-dot-pattern opacity-30 pointer-events-none" />
@@ -269,12 +275,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
       <div className="w-full max-w-7xl mx-auto min-h-screen grid grid-cols-1 lg:grid-cols-2 gap-12 items-center px-4 sm:px-6 lg:px-8 py-12 lg:py-16 z-10">
         
         {/* Left Side: AI Branding Section */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="pv-stagger flex flex-col items-start justify-center space-y-6 text-left lg:pr-8"
-        >
+        <div className="flex flex-col items-start justify-center space-y-6 text-left lg:pr-8">
           {/* Headline Container with Centered Behind Glow */}
           <motion.div
             style={depthEnabled ? { x: headingX, y: headingY } : undefined}
@@ -284,10 +285,24 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 lg:w-[450px] h-32 sm:h-44 bg-gradient-to-r from-purple-600/25 via-indigo-500/20 to-purple-600/25 rounded-full blur-3xl sm:blur-[100px] pointer-events-none -z-10 animate-pulse" />
             
             <h1 className="relative z-10 text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400">PromptVault</span>
+              <span className="block overflow-hidden pb-[0.12em] -mb-[0.12em]">
+                <motion.span
+                  className="inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400"
+                  initial={{ y: "105%", opacity: 0, filter: "blur(10px)" }}
+                  animate={{ y: "0%", opacity: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
+                  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                >
+                  PromptVault
+                </motion.span>
+              </span>
             </h1>
             {/* Right-to-Left One-by-One Fade & Slide Subtitle Slideshow */}
-            <div className="relative z-10 h-8 sm:h-9 lg:h-10 mt-2 overflow-hidden flex items-center">
+            <motion.div
+              className="relative z-10 h-8 sm:h-9 lg:h-10 mt-2 overflow-hidden flex items-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.45 }}
+            >
               <AnimatePresence mode="wait">
                 <motion.p
                   key={currentSubtitleIndex}
@@ -300,7 +315,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                   {heroSubtitles[currentSubtitleIndex]}
                 </motion.p>
               </AnimatePresence>
-            </div>
+            </motion.div>
           </motion.div>
 
           {/* Description */}
@@ -308,7 +323,14 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             style={depthEnabled ? { x: descriptionX, y: descriptionY } : undefined}
             className="text-base sm:text-lg text-muted-foreground/80 max-w-xl leading-relaxed font-normal"
           >
-            A complete workspace to create, version, test, and optimize your AI prompts in one organized environment.
+            <SplitText
+              as="span"
+              by="line"
+              trigger="mount"
+              mask={false}
+              delay={0.6}
+              segments={["A complete workspace to", { text: "create, version, test, and optimize", className: "text-indigo-100/90" }, "your AI prompts in one organized environment."]}
+            />
           </motion.p>
 
           {/* Quick Metrics Badge Row */}
@@ -316,27 +338,37 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             style={depthEnabled ? { x: metricsX, y: metricsY } : undefined}
             className="pt-4 grid grid-cols-3 gap-6 border-t border-border/30 w-full max-w-md"
           >
-            <div>
-              <div className="text-xl font-bold text-foreground">100%</div>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.85 }}>
+              <div className="text-xl font-bold text-foreground"><CountUp value={100} delay={0.85} />%</div>
               <div className="text-xs text-muted-foreground">Versioned</div>
-            </div>
-            <div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.93 }}>
               <div className="text-xl font-bold text-foreground">Side-by-Side</div>
               <div className="text-xs text-muted-foreground">Evaluation</div>
-            </div>
-            <div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 1.01 }}>
               <div className="text-xl font-bold text-foreground">Secure Vault</div>
               <div className="text-xs text-muted-foreground">Your data stays yours</div>
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+
+          {/* Interactive 3D prompt workspace (decorative, lg+) */}
+          <motion.div
+            className="hidden lg:block w-full"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 1.05 }}
+          >
+            <HeroWorkspace pointerX={smoothX} pointerY={smoothY} interactive={depthEnabled} />
+          </motion.div>
+        </div>
 
         {/* Right Side: Fixed Authentication Card with In-Place Form Transition */}
         <motion.div
           id="auth"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut", delay: 0.1 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
           onMouseMove={handleCardMouseMove}
           onMouseLeave={handleCardMouseLeave}
           style={depthEnabled ? { rotateX: cardRotateX, rotateY: cardRotateY, transformPerspective: 1100 } : undefined}
@@ -656,22 +688,22 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
       <div id="features" className="border-t border-border/40 py-24 md:py-32 bg-black/40 backdrop-blur-md px-4 sm:px-6 lg:px-8 z-10 relative scroll-mt-12">
         <div className="max-w-7xl mx-auto space-y-16">
           {/* Feature Section Header */}
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground">
-              Everything you need to manage{" "}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400">
-                AI prompts.
-              </span>
-            </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto mt-6 text-sm sm:text-base leading-relaxed">
-              Built for developers, AI engineers, and prompt designers who need precision, performance, and version tracking.
-            </p>
-          </div>
+          <Parallax speed={0.3} className="text-center space-y-4 max-w-2xl mx-auto">
+            <SplitText
+              as="h2"
+              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground"
+              segments={["Everything you need to manage", { text: "AI prompts.", className: GRADIENT_TEXT, underline: true }]}
+            />
+            <ScrollText
+              className="text-gray-400 max-w-2xl mx-auto mt-6 text-sm sm:text-base leading-relaxed"
+              text="Built for developers, AI engineers, and prompt designers who need precision, performance, and version tracking."
+            />
+          </Parallax>
 
           {/* 3-Column Feature Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Card 1: Version Control */}
-            <Reveal index={0} className="h-full">
+            <Reveal index={0} delay={0.15} className="h-full">
             <div data-tilt="4" className="relative h-full rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
               <div className="h-12 w-12 rounded-xl bg-purple-900/20 text-purple-400 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-105 transition-transform">
                 <GitBranch className="h-6 w-6" />
@@ -686,7 +718,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             </Reveal>
 
             {/* Card 2: AI Evaluation Engine */}
-            <Reveal index={1} className="h-full">
+            <Reveal index={1} delay={0.15} className="h-full">
             <div data-tilt="4" className="relative h-full rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
               <div className="h-12 w-12 rounded-xl bg-purple-900/20 text-purple-400 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-105 transition-transform">
                 <Sparkles className="h-6 w-6" />
@@ -701,7 +733,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             </Reveal>
 
             {/* Card 3: Organized Vault */}
-            <Reveal index={2} className="h-full">
+            <Reveal index={2} delay={0.15} className="h-full">
             <div data-tilt="4" className="relative h-full rounded-2xl border border-gray-800 bg-white/5 backdrop-blur-xl p-8 hover:border-purple-500/50 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-300 group">
               <div className="h-12 w-12 rounded-xl bg-purple-900/20 text-purple-400 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-105 transition-transform">
                 <FolderLock className="h-6 w-6" />
@@ -726,16 +758,24 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
         <div className="max-w-6xl mx-auto space-y-12 relative z-10">
           {/* Section Header */}
           <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground">
-              How <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400">PromptVault</span> works
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed font-normal">
-              From creating prompts to optimizing AI workflows, manage everything in one organized workspace.
-            </p>
+            <SplitText
+              as="h2"
+              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground"
+              segments={["How", { text: "PromptVault", className: GRADIENT_TEXT }, "works"]}
+            />
+            <SplitText
+              as="p"
+              by="line"
+              mask={false}
+              delay={0.3}
+              className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed font-normal"
+              segments={["From creating prompts to optimizing AI workflows, manage everything in one organized workspace."]}
+            />
           </div>
 
           {/* 3 Step Connected Workflow Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+          <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            <div aria-hidden="true" className="pv-steps-line hidden lg:block" />
             {/* Step 1 Card */}
             <Reveal index={0}>
             <motion.div
@@ -808,6 +848,9 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
         </div>
       </div>
 
+      {/* Pinned scroll story: Capture → Save → Version → Compare → Evaluate */}
+      <WorkflowStory />
+
       {/* High-Fidelity App Demo Section (Diff Engine Preview) */}
       <div className="border-t border-border/40 py-24 bg-black/50 backdrop-blur-md px-4 sm:px-6 lg:px-8 z-10 relative overflow-hidden">
         {/* Ambient Glows */}
@@ -815,14 +858,21 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
 
         <div className="max-w-6xl mx-auto space-y-12 relative z-10">
           {/* Section Header */}
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground">
-              See the evolution of your <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400">prompts.</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed font-normal">
-              Track changes line-by-line with our Git-inspired version control engine.
-            </p>
-          </div>
+          <Parallax speed={0.5} className="text-center space-y-3 max-w-2xl mx-auto">
+            <SplitText
+              as="h2"
+              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground"
+              segments={["See the evolution of your", { text: "prompts.", className: GRADIENT_TEXT, underline: true }]}
+            />
+            <SplitText
+              as="p"
+              by="line"
+              mask={false}
+              delay={0.3}
+              className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed font-normal"
+              segments={["Track changes line-by-line with our Git-inspired version control engine."]}
+            />
+          </Parallax>
 
           {/* App Window Wrapper */}
           <motion.div
@@ -853,7 +903,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             {/* Internal Diff Interface */}
             <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-black/40 font-mono text-xs">
               {/* Left Panel: v1.0 Initial Draft */}
-              <div className="space-y-3 bg-neutral-950/90 rounded-xl p-4 border border-border/50">
+              <motion.div initial={{ opacity: 0, x: -18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.2 }} className="h-full space-y-3 bg-neutral-950/90 rounded-xl p-4 border border-border/50">
                 <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-foreground text-xs">v1.0 - Initial Draft</span>
@@ -872,10 +922,10 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                     .
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Right Panel: v1.1 SEO Optimized */}
-              <div className="space-y-3 bg-neutral-950/90 rounded-xl p-4 border border-emerald-500/30 ring-1 ring-emerald-500/20">
+              <motion.div initial={{ opacity: 0, x: 18 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.45 }} className="h-full space-y-3 bg-neutral-950/90 rounded-xl p-4 border border-emerald-500/30 ring-1 ring-emerald-500/20">
                 <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-foreground text-xs">v1.1 - SEO Optimized</span>
@@ -909,7 +959,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
                     , including real-world examples.
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -922,18 +972,25 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
 
         <div className="max-w-6xl mx-auto space-y-12 relative z-10">
           {/* Section Header */}
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold tracking-wide shadow-sm">
+          <Parallax speed={0.25} className="text-center space-y-3 max-w-2xl mx-auto">
+            <Reveal variant="text" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold tracking-wide shadow-sm">
               <img src="/pv-logo.png" alt="" className="h-4 w-4 object-contain" />
               <span>PRODUCT DEMO</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground">
-              See PromptVault <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400">in Action</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed font-normal">
-              Discover how PromptVault helps you save, organize, version, compare, and improve AI prompts&mdash;all in one workspace.
-            </p>
-          </div>
+            </Reveal>
+            <SplitText
+              as="h2"
+              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-foreground"
+              segments={["See PromptVault", { text: "in Action", className: GRADIENT_TEXT, underline: true }]}
+            />
+            <SplitText
+              as="p"
+              by="line"
+              mask={false}
+              delay={0.3}
+              className="text-xs sm:text-sm text-muted-foreground/80 leading-relaxed font-normal"
+              segments={["Discover how PromptVault helps you save, organize, version, compare, and improve AI prompts\u2014all in one workspace."]}
+            />
+          </Parallax>
 
           {/* Video Player with Gradient Border & Glow */}
           <motion.div
@@ -977,20 +1034,20 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
           {/* Main Headline */}
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white max-w-4xl mx-auto">
-            Version Control for{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-purple-400">
-              AI Prompts
-            </span>
-          </h2>
+          <SplitText
+            as="h2"
+            className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white max-w-4xl mx-auto"
+            segments={["Version Control for", { text: "AI Prompts", className: GRADIENT_TEXT, underline: true }]}
+          />
 
           {/* Subtitle */}
-          <p className="text-base sm:text-lg text-gray-400 max-w-[650px] mx-auto leading-relaxed font-normal">
-            Track every prompt, compare versions, evaluate quality, and build reliable AI workflows with confidence.
-          </p>
+          <ScrollText
+            className="text-base sm:text-lg text-gray-400 max-w-[650px] mx-auto leading-relaxed font-normal"
+            text="Track every prompt, compare versions, evaluate quality, and build reliable AI workflows with confidence."
+          />
 
           {/* Buttons Row */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Reveal variant="text" delay={0.2} className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={handleStartBuildingFree}
               data-magnetic=""
@@ -1006,10 +1063,10 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             >
               <span>Explore Features</span>
             </button>
-          </div>
+          </Reveal>
 
           {/* Trust Row */}
-          <div className="pt-4 border-t border-border/30 max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-medium text-gray-400 select-none">
+          <Reveal variant="text" delay={0.35} className="pt-4 border-t border-border/30 max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-medium text-gray-400 select-none">
             <span className="flex items-center gap-1.5 text-emerald-400/90 font-semibold">
               <span className="text-emerald-400 font-bold">✓</span> No credit card required
             </span>
@@ -1019,7 +1076,7 @@ export const Login: React.FC<{ initialMode?: "signin" | "signup" }> = ({ initial
             <span className="flex items-center gap-1.5 text-emerald-400/90 font-semibold">
               <span className="text-emerald-400 font-bold">✓</span> Secure workspace
             </span>
-          </div>
+          </Reveal>
 
           {/* Floating Visual Element (Subtle Mini PromptVault Window Diff Preview) */}
           <div className="pt-6 max-w-2xl mx-auto opacity-35 hover:opacity-60 transition-opacity duration-300 select-none pointer-events-none">
